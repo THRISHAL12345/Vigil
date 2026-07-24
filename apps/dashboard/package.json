@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@vigil/database": "workspace:^",
     "@vigil/logger": "workspace:*",
     "@vigil/schemas": "workspace:*",
     "date-fns": "^4.4.0",

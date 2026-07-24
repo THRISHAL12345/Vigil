@@ -1,21 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
-  --muted: #a3a3a3;
-  --border: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.05);
+  --background: #050505;
+  --foreground: #f8fafc;
+  --muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.05);
+
+  --accent-cyan: #00f0ff;
+  --accent-purple: #b026ff;
   
   --breaking: #ef4444;
-  --breaking-bg: rgba(239, 68, 68, 0.1);
+  --breaking-bg: rgba(239, 68, 68, 0.15);
+  --breaking-border: rgba(239, 68, 68, 0.3);
+  
   --deprecation: #f59e0b;
-  --deprecation-bg: rgba(245, 158, 11, 0.1);
+  --deprecation-bg: rgba(245, 158, 11, 0.15);
+  --deprecation-border: rgba(245, 158, 11, 0.3);
+  
   --new-feature: #10b981;
-  --new-feature-bg: rgba(16, 185, 129, 0.1);
+  --new-feature-bg: rgba(16, 185, 129, 0.15);
+  --new-feature-border: rgba(16, 185, 129, 0.3);
+  
   --non-breaking: #3b82f6;
-  --non-breaking-bg: rgba(59, 130, 246, 0.1);
+  --non-breaking-bg: rgba(59, 130, 246, 0.15);
+  --non-breaking-border: rgba(59, 130, 246, 0.3);
 }
 
 @theme inline {
@@ -23,36 +34,79 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  
   --color-glass-bg: var(--glass-bg);
   --color-glass-border: var(--glass-border);
+  --color-glass-highlight: var(--glass-highlight);
+  
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-purple: var(--accent-purple);
   
   --color-breaking: var(--breaking);
   --color-breaking-bg: var(--breaking-bg);
+  --color-breaking-border: var(--breaking-border);
+  
   --color-deprecation: var(--deprecation);
   --color-deprecation-bg: var(--deprecation-bg);
+  --color-deprecation-border: var(--deprecation-border);
+  
   --color-new-feature: var(--new-feature);
   --color-new-feature-bg: var(--new-feature-bg);
+  --color-new-feature-border: var(--new-feature-border);
+  
   --color-non-breaking: var(--non-breaking);
   --color-non-breaking-bg: var(--non-breaking-bg);
+  --color-non-breaking-border: var(--non-breaking-border);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-fira-code), ui-monospace, SFMono-Regular, monospace;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  
+  /* High-tech grid background and radial glows */
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(255,255,255,0.02) 0%, transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(255,255,255,0.02) 0%, transparent 50%);
-  min-height: 100vh;
+    radial-gradient(circle at 15% 0%, rgba(176, 38, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+  background-attachment: fixed;
 }
 
-.glass-card {
+.glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--glass-highlight);
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
