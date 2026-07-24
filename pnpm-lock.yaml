@@ -197,6 +197,9 @@ importers:
       bullmq:
         specifier: ^5.0.0
         version: 5.81.1
+      groq-sdk:
+        specifier: ^1.3.0
+        version: 1.3.0
       ioredis:
         specifier: ^5.3.0
         version: 5.11.1
@@ -275,6 +278,9 @@ importers:
 
   services/spec-watcher:
     dependencies:
+      '@octokit/rest':
+        specifier: ^20.0.0
+        version: 20.1.2
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -2383,6 +2389,10 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  groq-sdk@1.3.0:
+    resolution: {integrity: sha512-mvgUIpAxlk/VxWIoliHx4R+Ha78Bd/g0t24OFjCXtdLbNiY1rW4h9AcznKBwFho7K/Nq732ZSjxMYkNb1xeCFg==}
+    hasBin: true
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -6084,6 +6094,8 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
+
+  groq-sdk@1.3.0: {}
 
   has-bigints@1.1.0: {}
 
