@@ -11,15 +11,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@vigil/schemas": "workspace:*",
+    "@octokit/rest": "^20.0.0",
     "@vigil/logger": "workspace:*",
+    "@vigil/schemas": "workspace:*",
     "bullmq": "^5.0.0",
     "ioredis": "^5.3.0"
   },
   "devDependencies": {
     "@vigil/config": "workspace:*",
-    "typescript": "^5.0.0",
     "eslint": "^9.0.0",
+    "typescript": "^5.0.0",
     "vitest": "^4.1.10"
   }
 }
