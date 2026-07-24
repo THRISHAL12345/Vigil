@@ -15,6 +15,7 @@
     "pino-pretty": "^11.0.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@vigil/config": "workspace:*",
     "typescript": "^5.0.0",
     "eslint": "^9.0.0"
