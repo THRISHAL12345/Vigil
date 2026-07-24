@@ -34,11 +34,13 @@ const worker = createWorker<FixJobData>(
       const systemPrompt = `You are an expert patch generator for a repository. 
 You will be given a vendor API change and a specific usage site in a codebase.
 You can use the 'read_file' tool to fetch the exact file context from the repository. You MUST read the file containing the usage site before attempting to generate a patch.
+Note: You are strictly limited to 5 file reads per job. Use them wisely to read the usage site and any immediately relevant imports.
 Generate a strict unified diff to fix the usage site according to the API change.
 Output ONLY the unified diff string. No other markdown formatting except the diff itself.`;
 
       const userPrompt = `Change Classification: ${change.classification}
-Rationale: ${change.rationale}
+Rule Triggered: ${change.ruleTriggered || "LLM Assessed"}
+Rationale / Structural Diff: ${change.rationale}
 Usage Site: ${usageSite.filePath} (Lines ${usageSite.startLine}-${usageSite.endLine})
 
 Please read the file, and then provide the unified diff to fix this usage site.`;
@@ -47,6 +49,9 @@ Please read the file, and then provide the unified diff to fix this usage site.`
       let generatorModel = "llama3-70b-8192";
 
       if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== "dummy" && process.env.NODE_ENV !== "test") {
+        let readsCount = 0;
+        const MAX_READS = 5;
+
         const { text } = await generateText({
           model: groq("llama3-70b-8192"),
           system: systemPrompt,
@@ -58,16 +63,26 @@ Please read the file, and then provide the unified diff to fix this usage site.`
                 filePath: z.string().describe("The relative path of the file to read (e.g. src/index.ts)"),
               }),
               execute: async ({ filePath }) => {
-                logger.info({ tool: "read_file", filePath, jobId: job.id }, "LLM requested file context");
-                const absolutePath = path.resolve(targetDir as string, filePath);
-                // Basic path traversal prevention
-                if (!absolutePath.startsWith(path.resolve(targetDir as string))) {
-                  return "Error: Path traversal is not allowed.";
+                readsCount++;
+                logger.info({ tool: "read_file", filePath, jobId: job.id, attempt: readsCount }, "LLM requested file context");
+                
+                if (readsCount > MAX_READS) {
+                  logger.warn({ jobId: job.id, filePath }, "LLM exceeded maximum allowed file reads");
+                  return "Error: Tool read limit exceeded. You are not allowed to read any more files for this job.";
                 }
+
+                const absolutePath = path.resolve(targetDir as string, filePath);
+                // Strict path traversal prevention per AGENTS.md §6.4
+                if (!absolutePath.startsWith(path.resolve(targetDir as string))) {
+                  logger.error({ jobId: job.id, attemptedPath: absolutePath }, "UNAUTHORIZED: LLM attempted path traversal outside target directory");
+                  return "Error: Path traversal is strictly forbidden. This incident has been logged.";
+                }
+
                 try {
                   const content = await fs.readFile(absolutePath, "utf-8");
                   return content;
                 } catch (error: any) {
+                  logger.error({ err: error, jobId: job.id, filePath }, "LLM read_file tool encountered an error");
                   return `Error reading file: ${error.message}`;
                 }
               }
