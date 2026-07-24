@@ -1,0 +1,14 @@
+# GitHub CODEOWNERS for Vigil
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @THRISHAL12345
+
+# Safety-critical services require explicit review
+/services/fix-generator/ @THRISHAL12345
+/services/sandbox-verifier/ @THRISHAL12345
+/services/pr-author/ @THRISHAL12345
+
+# CI and infrastructure also require strict review
+/.github/workflows/ @THRISHAL12345
+/infra/ @THRISHAL12345
