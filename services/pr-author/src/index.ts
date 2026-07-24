@@ -34,7 +34,16 @@ const worker = createWorker<VerifiedPatch>(
         return null;
       }
       
-      const prRecord = await createDraftPullRequest(job.data, usageSite, owner, repo);
+      const schemaUsageSite = {
+        ...usageSite,
+        detectedAt: usageSite.detectedAt.toISOString(),
+        change: {
+          ...usageSite.change,
+          createdAt: usageSite.change.createdAt.toISOString()
+        }
+      };
+
+      const prRecord = await createDraftPullRequest(job.data, schemaUsageSite as any, owner, repo);
       
       logger.info({ githubPrUrl: prRecord.githubPrUrl }, "Successfully opened draft PR");
       return prRecord;
