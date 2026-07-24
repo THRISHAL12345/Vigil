@@ -40,6 +40,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  logger.error("Failed to run backfill script", { error: err });
+  logger.error({ error: err }, "Failed to run backfill script");
   process.exit(1);
 });

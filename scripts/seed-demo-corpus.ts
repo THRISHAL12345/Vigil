@@ -23,6 +23,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  logger.error("Failed to run seed script", { error: err });
+  logger.error({ error: err }, "Failed to run seed script");
   process.exit(1);
 });
