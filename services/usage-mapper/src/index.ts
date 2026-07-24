@@ -2,8 +2,8 @@ import { logger } from "@vigil/logger";
 import { Worker, Job } from "bullmq";
 import { Redis } from "ioredis";
 import { ClassifiedChange, UsageSite } from "@vigil/schemas";
-// import Parser from "web-tree-sitter"; // To be implemented in a future phase
-
+import { createParser } from "@vigil/language-adapters";
+import { getSurfaceMap } from "@vigil/vendor-adapters";
 const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 interface MapperJobData {
@@ -22,6 +22,17 @@ const worker = new Worker(
       // 2. Init web-tree-sitter parser
       // 3. Scan files using vendor SurfaceMap patterns
       // 4. Return array of UsageSite records
+      
+      const { change } = job.data;
+      const surfaceMap = getSurfaceMap("stripe"); // Simplified for now
+      
+      if (!surfaceMap) {
+        throw new Error("No surface map found for vendor");
+      }
+      
+      // Example of parser initialization
+      const parser = await createParser("typescript", "const x = 1;");
+      const callSites = parser.extractCallSites(surfaceMap.entries[0]);
       
       const sites: UsageSite[] = [];
       logger.info({ sitesFound: sites.length, jobId: job.id }, "Successfully mapped usage sites");
