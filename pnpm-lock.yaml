@@ -144,6 +144,9 @@ importers:
 
   packages/language-adapters:
     dependencies:
+      '@typescript-eslint/typescript-estree':
+        specifier: ^8.65.0
+        version: 8.65.0(typescript@5.9.3)
       '@vigil/logger':
         specifier: workspace:*
         version: link:../logger

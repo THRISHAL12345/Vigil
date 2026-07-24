@@ -4,14 +4,14 @@ import { UsageSite } from "@vigil/schemas";
 
 export interface ParserResult {
   ast: any; // Would be tree-sitter AST root node
-  extractCallSites: (surfaceMapEntry: any) => Partial<UsageSite>[];
+  extractCallSites: (calleePatterns: string[]) => Partial<UsageSite>[];
 }
 
-export async function createParser(language: string, fileContent: string): Promise<ParserResult> {
+export async function createParser(language: string, fileContent: string, filePath: string = "unknown.ts"): Promise<ParserResult> {
   switch (language) {
     case "typescript":
     case "javascript":
-      return parseTypeScript(fileContent);
+      return parseTypeScript(fileContent, filePath);
     case "python":
       return parsePython(fileContent);
     default:

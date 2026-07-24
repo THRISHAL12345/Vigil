@@ -9,13 +9,14 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@vigil/schemas": "workspace:*",
+    "@typescript-eslint/typescript-estree": "^8.65.0",
     "@vigil/logger": "workspace:*",
+    "@vigil/schemas": "workspace:*",
     "web-tree-sitter": "^0.22.6"
   },
   "devDependencies": {
     "@vigil/config": "workspace:*",
-    "typescript": "^5.0.0",
-    "eslint": "^9.0.0"
+    "eslint": "^9.0.0",
+    "typescript": "^5.0.0"
   }
 }
