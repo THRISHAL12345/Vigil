@@ -38,11 +38,22 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
     }
 
     if (testSuiteDetected) {
-      // 3. Run the test suite
-      // Using execa to run npm test locally in the mock repo
-      const { stdout, stderr, exitCode } = await execa("npm", ["test"], {
-        cwd: targetDir,
+      // 3. Run the test suite in a fully isolated container
+      // As per AGENTS.md §8.2: isolated, no network egress, ephemeral
+      const { stdout, stderr, exitCode } = await execa("docker", [
+        "run",
+        "--rm", // ephemeral
+        "--network", "none", // no network egress
+        "--memory", "4g", // resource limit
+        "--cpus", "2", // resource limit
+        "-v", `${targetDir}:/app`,
+        "-w", "/app",
+        "node:20-alpine",
+        "npm",
+        "test"
+      ], {
         reject: false, // Don't throw on non-zero exit
+        timeout: 600000, // 10 minute hard timeout
       });
       
       sandboxLog = `${stdout}\n${stderr}`;

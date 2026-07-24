@@ -35,8 +35,8 @@ const worker = createWorker<FixJobData>(
 You will be given a vendor API change and a specific usage site in a codebase.
 You can use the 'read_file' tool to fetch the exact file context from the repository. You MUST read the file containing the usage site before attempting to generate a patch.
 Note: You are strictly limited to 5 file reads per job. Use them wisely to read the usage site and any immediately relevant imports.
-Generate a strict unified diff to fix the usage site according to the API change.
-Output ONLY the unified diff string. No other markdown formatting except the diff itself.`;
+When you are ready to propose a fix, you MUST use the 'write_patch' tool to submit your unified diff and a confidence score.
+If you are unable to generate a safe fix, do not call 'write_patch'.`;
 
       const userPrompt = `Change Classification: ${change.classification}
 Rule Triggered: ${change.ruleTriggered || "LLM Assessed"}
@@ -45,14 +45,15 @@ Usage Site: ${usageSite.filePath} (Lines ${usageSite.startLine}-${usageSite.endL
 
 Please read the file, and then provide the unified diff to fix this usage site.`;
 
-      let generatedDiff = "--- a/file\n+++ b/file\n+ // TODO: implement fix";
+      let generatedDiff: string | null = "--- a/file\n+++ b/file\n+ // TODO: implement fix";
       let generatorModel = "llama3-70b-8192";
+      let generatorConfidence = 0.9;
 
       if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== "dummy" && process.env.NODE_ENV !== "test") {
         let readsCount = 0;
         const MAX_READS = 5;
 
-        const { text } = await generateText({
+        const { toolCalls } = await generateText({
           model: groq("llama3-70b-8192"),
           system: systemPrompt,
           prompt: userPrompt,
@@ -86,10 +87,34 @@ Please read the file, and then provide the unified diff to fix this usage site.`
                   return `Error reading file: ${error.message}`;
                 }
               }
+            }),
+            write_patch: tool({
+              description: "Proposes a CandidatePatch. Call this when you are confident in your fix.",
+              inputSchema: z.object({
+                diff: z.string().describe("The unified diff string to fix the usage site"),
+                confidence: z.number().min(0).max(1).describe("Your confidence in this patch being correct (0.0 to 1.0)")
+              }),
+              execute: async (args) => {
+                logger.info({ jobId: job.id, confidence: args.confidence }, "LLM called write_patch tool");
+                return args;
+              }
             })
           }
         });
-        generatedDiff = text;
+        
+        const patchCall = toolCalls.find((c: any) => c.toolName === "write_patch");
+        if (patchCall) {
+          generatedDiff = (patchCall as any).args.diff;
+          generatorConfidence = (patchCall as any).args.confidence;
+        } else {
+          logger.warn({ jobId: job.id }, "LLM failed to call write_patch tool");
+          generatedDiff = null;
+        }
+      }
+
+      if (!generatedDiff || generatorConfidence < 0.8) {
+        logger.warn({ jobId: job.id, confidence: generatorConfidence }, "Agent could not produce a high-confidence patch. Flagging for read-only report.");
+        return null as any; // Return null (or handle according to queue expectations) to skip creating a bad patch
       }
 
       const patch: CandidatePatch = {
@@ -97,7 +122,7 @@ Please read the file, and then provide the unified diff to fix this usage site.`
         usageSiteId: usageSite.id,
         diff: generatedDiff,
         generatorModel,
-        generatorConfidence: 0.9,
+        generatorConfidence,
         createdAt: new Date().toISOString()
       };
       
