@@ -1,24 +1,45 @@
-# Vigil
+<div align="center">
+  <img src="docs/assets/banner.png" alt="Vigil Banner" width="100%" />
 
-An open-source agentic system that detects vendor API/contract changes and opens verified, sandboxed PRs on affected codebases.
+  <br />
+  <br />
 
-## Mission & Problem Statement
+  **The Open-Source Agentic System for Vendor API Contracts.**
+  <br />
+  *Never get blindsided by a breaking API change again.*
 
-API providers ship breaking changes and useful new features constantly. Changelogs go unread, breaking changes ship with little warning, and useful features quietly launch and go unnoticed. This is a solved problem at the *package* level (Dependabot, Renovate) but an unsolved problem at the *API contract* level — nothing watches a vendor's OpenAPI/GraphQL/gRPC schema, maps it to your actual call sites, and opens a verified PR the way Dependabot does for a `package.json` bump.
+  <br />
 
-**Vigil is that missing layer.** It is a neutral, vendor-agnostic, fully open-source system that:
+  [![CI Status](https://img.shields.io/badge/CI-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/THRISHAL12345/Vigil/actions)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](./CONTRIBUTING.md)
+  [![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
+  [![Powered by TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-1. Watches public API contracts (OpenAPI specs, GraphQL schemas, changelogs, SDK release notes, and — where available — live traffic) for vendors it tracks.
-2. Classifies every detected change as `breaking`, `non_breaking`, `deprecation`, or `new_feature`.
-3. Maps each change to actual usage sites in a subscribed codebase via static analysis.
-4. Generates a fix (or an opt-in feature-adoption patch), verifies it in an isolated sandbox against the existing test suite, and opens a draft PR — never an auto-merge.
-5. Never touches a repository without an explicit installation, and never merges anything itself.
+</div>
 
-**Non-negotiable design principle:** trust is earned incrementally. Read-only reporting ships before PR-opening. PR-opening ships long before anything resembling auto-merge.
+---
 
-## Architecture
+## ⚡ The Missing Layer for API Maintenance
 
-Vigil uses a queue-backed, event-driven architecture to reliably parse, map, and patch vendor changes.
+API providers ship breaking changes and useful new features constantly. Changelogs go unread, breaking changes ship with little warning, and useful features quietly launch and go unnoticed. 
+
+This is a solved problem at the *package* level (e.g., Dependabot, Renovate), but an **unsolved problem at the API contract level**. Nothing watches a vendor's OpenAPI schema, maps it to your actual call sites, and opens a verified PR.
+
+**Vigil is that missing layer.** 
+
+It is a neutral, vendor-agnostic, fully open-source system that:
+1. 📡 **Watches public API contracts** (OpenAPI specs, GraphQL schemas, changelogs, SDK release notes).
+2. 🏷️ **Classifies every detected change** as `breaking`, `non_breaking`, `deprecation`, or `new_feature`.
+3. 🗺️ **Maps changes to your usage sites** in your codebase via blazing-fast WASM static analysis.
+4. 🛠️ **Generates automated fixes**, verifies them in an isolated sandbox against your existing test suite, and opens a *Draft PR*.
+5. 🛡️ **Respects your boundaries.** Vigil never touches a repository without an explicit installation, and it *never* merges code autonomously.
+
+---
+
+## 🏗️ Architecture
+
+Vigil uses a queue-backed, event-driven architecture to reliably parse, map, and patch vendor changes. Every stage is an at-least-once, idempotent job, allowing independent scaling, testing, and deployment.
 
 ```mermaid
 flowchart TD
@@ -31,28 +52,54 @@ flowchart TD
     PrAuthor --> GitHub[Target Repo PR]
 ```
 
-Every stage is a queue-backed, at-least-once, idempotent job. Subsystems communicate exclusively through standard schemas (via `packages/schemas`), allowing them to be independently scaled, tested, and deployed.
+> [!IMPORTANT]
+> **The Trust Ladder**: Trust is earned incrementally. Vigil's read-only reporting ships before PR-opening. Sandboxed execution isolates untested AI-generated patches. Auto-merge is explicitly out of scope. **Safety is our #1 priority.**
 
-## Quickstart
+---
+
+## 🚀 Quickstart
 
 ### Prerequisites
-- Node 20+
-- pnpm 9+
-- Docker & Docker Compose
+- [Node.js](https://nodejs.org/) 20+
+- [pnpm](https://pnpm.io/) 9+
+- [Docker](https://www.docker.com/) & Docker Compose
 
 ### Local Development Setup
+Get Vigil running locally in minutes:
+
 ```bash
+# 1. Clone the repository
 git clone https://github.com/THRISHAL12345/Vigil.git
 cd Vigil
+
+# 2. Install dependencies
 pnpm install
+
+# 3. Setup environment variables
 cp .env.example .env
+
+# 4. Spin up local Redis & PostgreSQL instances
 docker compose -f infra/docker/docker-compose.dev.yml up -d
+
+# 5. Scaffold the database schema
 pnpm db:migrate
+
+# 6. Start the monorepo dev servers
 pnpm dev
 ```
 
-## Contributing
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on how to contribute to Vigil. Before contributing, please read [AGENTS.md](./AGENTS.md) thoroughly as it is the single source of truth for the system architecture and trust model.
+---
 
-## License
-This project is licensed under the [MIT License](./LICENSE).
+## 🤝 Contributing
+
+We welcome community contributions! Vigil thrives on open-source collaboration.
+
+1. **Read [AGENTS.md](./AGENTS.md) thoroughly.** This file is the single source of truth for the system architecture and trust model.
+2. Check out [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+3. Explore the `vendor-adapters/` directory if you'd like to help Vigil support new APIs!
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by the open-source community.</sub>
+</div>
