@@ -1,0 +1,23 @@
+{
+  "name": "@vigil/github-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/",
+    "dev": "tsc --watch",
+    "start": "probot run ./dist/index.js"
+  },
+  "dependencies": {
+    "@vigil/schemas": "workspace:*",
+    "@vigil/logger": "workspace:*",
+    "probot": "^13.0.1"
+  },
+  "devDependencies": {
+    "@vigil/config": "workspace:*",
+    "typescript": "^5.0.0",
+    "eslint": "^9.0.0"
+  }
+}
