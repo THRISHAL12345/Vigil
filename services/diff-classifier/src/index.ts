@@ -16,9 +16,9 @@ const worker = createWorker<DiffJobData>(
     try {
       const { fromSnapshot, toSnapshot, deltas } = job.data;
       
-      const classifiedChanges = deltas.map((delta: SchemaDelta) => 
+      const classifiedChanges = await Promise.all(deltas.map((delta: SchemaDelta) => 
         classifyDelta(delta, fromSnapshot, toSnapshot)
-      );
+      ));
 
       logger.info({ count: classifiedChanges.length, jobId: job.id }, "Successfully classified changes");
       return classifiedChanges;
