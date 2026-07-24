@@ -1,0 +1,7 @@
+{
+  "name": "failing-test-repo",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo 'Simulating failing test suite after bad patch' && exit 1"
+  }
+}
