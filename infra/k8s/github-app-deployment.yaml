@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-app
+  template:
+    metadata:
+      labels:
+        app: github-app
+    spec:
+      containers:
+      - name: github-app
+        image: vigil/github-app:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: vigil-secrets
+              key: webhook_secret
+        - name: APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: vigil-secrets
+              key: app_id
+        - name: PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: vigil-secrets
+              key: private_key

@@ -1,0 +1,35 @@
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+WORKDIR /app
+RUN pnpm add -g turbo
+COPY . .
+RUN turbo prune @vigil/dashboard --docker
+
+FROM base AS installer
+WORKDIR /app
+COPY .gitignore .gitignore
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN pnpm install
+
+COPY --from=builder /app/out/full/ .
+# Next.js telemetry disable
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm turbo run build --filter=@vigil/dashboard
+
+FROM base AS runner
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+USER nextjs
+
+COPY --from=installer /app .
+
+WORKDIR /app/apps/dashboard
+EXPOSE 3000
+CMD ["pnpm", "run", "start"]

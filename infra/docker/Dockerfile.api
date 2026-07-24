@@ -1,0 +1,38 @@
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+# Set working directory
+WORKDIR /app
+RUN pnpm add -g turbo
+COPY . .
+# Generate a partial monorepo with only the dependencies of @vigil/api
+RUN turbo prune @vigil/api --docker
+
+FROM base AS installer
+WORKDIR /app
+# First install the dependencies (as they change less often)
+COPY .gitignore .gitignore
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN pnpm install
+
+# Build the project
+COPY --from=builder /app/out/full/ .
+RUN pnpm turbo run build --filter=@vigil/api
+
+FROM base AS runner
+WORKDIR /app
+
+# Don't run production as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 api_user
+USER api_user
+
+COPY --from=installer /app .
+
+WORKDIR /app/apps/api
+EXPOSE 3001
+CMD ["pnpm", "run", "start"]

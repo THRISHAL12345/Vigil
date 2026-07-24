@@ -1,0 +1,37 @@
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+WORKDIR /app
+RUN pnpm add -g turbo
+COPY . .
+# We can't prune a specific package easily if we want a unified worker image, 
+# so we'll just build the whole repo to keep the Dockerfile unified.
+# In a true prod setting, you might use build arguments to prune specifically.
+
+FROM base AS installer
+WORKDIR /app
+COPY .gitignore .gitignore
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
+# Copy workspaces
+COPY apps/ ./apps/
+COPY packages/ ./packages/
+COPY services/ ./services/
+RUN pnpm install
+
+RUN pnpm turbo run build --filter="./services/*"
+
+FROM base AS runner
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 worker
+USER worker
+
+COPY --from=installer /app .
+
+# Entrypoint expects the service name as the first argument
+# Example: docker run worker pnpm --filter=@vigil/spec-watcher start
+CMD ["pnpm", "--filter=@vigil/spec-watcher", "start"]

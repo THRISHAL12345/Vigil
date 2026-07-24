@@ -1,0 +1,33 @@
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+WORKDIR /app
+RUN pnpm add -g turbo
+COPY . .
+RUN turbo prune @vigil/github-app --docker
+
+FROM base AS installer
+WORKDIR /app
+COPY .gitignore .gitignore
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN pnpm install
+
+COPY --from=builder /app/out/full/ .
+RUN pnpm turbo run build --filter=@vigil/github-app
+
+FROM base AS runner
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 probot
+USER probot
+
+COPY --from=installer /app .
+
+WORKDIR /app/apps/github-app
+EXPOSE 3000
+CMD ["pnpm", "run", "start"]
