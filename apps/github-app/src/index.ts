@@ -1,6 +1,9 @@
 import { Probot } from "probot";
 import { logger } from "@vigil/logger";
 import { prisma } from "@vigil/database";
+import { createQueue } from "@vigil/queue";
+
+const usageMapperQueue = createQueue("usage-mapper-queue");
 
 export default (app: Probot) => {
   logger.info("Vigil GitHub App loaded successfully");
@@ -42,7 +45,6 @@ export default (app: Probot) => {
     }
   });
 
-  // Placeholder for push events - will trigger usage-mapper in the future
   app.on("push", async (context) => {
     const defaultBranch = context.payload.repository.default_branch;
     const ref = context.payload.ref;
@@ -50,9 +52,28 @@ export default (app: Probot) => {
     const installationId = context.payload.installation?.id?.toString();
 
     // Only scan pushes to the default branch
-    if (ref === `refs/heads/${defaultBranch}`) {
-      logger.info({ repoFullName, installationId, defaultBranch }, "Detected push to default branch. Ready for usage scan (placeholder).");
-      // TODO: enqueue job to usage-mapper to scan the repo against tracked vendors
+    if (ref === `refs/heads/${defaultBranch}` && installationId) {
+      logger.info({ repoFullName, installationId, defaultBranch }, "Detected push to default branch. Enqueueing usage scans.");
+      
+      try {
+        // In v1, we just scan against recent changes across all tracked vendors.
+        const recentChanges = await prisma.classifiedChange.findMany({
+          orderBy: { detectedAt: "desc" },
+          take: 50
+        });
+
+        for (const change of recentChanges) {
+          await usageMapperQueue.add("map-usage", {
+            change,
+            targetRepoFullName: repoFullName,
+            installationId
+          });
+        }
+        
+        logger.info({ repoFullName, enqueuedJobs: recentChanges.length }, "Enqueued usage-mapper jobs for push event.");
+      } catch (error) {
+        logger.error({ err: error, repoFullName }, "Failed to enqueue usage-mapper jobs on push");
+      }
     }
   });
 
