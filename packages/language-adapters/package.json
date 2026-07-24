@@ -4,19 +4,22 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@typescript-eslint/typescript-estree": "^8.65.0",
     "@vigil/logger": "workspace:*",
     "@vigil/schemas": "workspace:*",
+    "tree-sitter-wasms": "^0.1.13",
     "web-tree-sitter": "^0.22.6"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "@vigil/config": "workspace:*",
     "eslint": "^9.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.10"
   }
 }
