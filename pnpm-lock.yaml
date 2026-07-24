@@ -60,6 +60,9 @@ importers:
 
   apps/dashboard:
     dependencies:
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
