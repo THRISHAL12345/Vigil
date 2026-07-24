@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendor {
+  id                   String   @id @default(uuid())
+  displayName          String
+  sourceType           String
+  sourceData           Json
+  pollIntervalMinutes  Int
+  changelogFallbackUrl String?
+  supportedLanguages   String[]
+  
+  snapshots            SpecSnapshot[]
+  surfaceMaps          SurfaceMap[]
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model SurfaceMap {
+  id          String   @id @default(uuid())
+  vendorId    String
+  entries     Json
+  
+  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SpecSnapshot {
+  id                 String   @id @default(uuid())
+  vendorId           String
+  sourceType         String
+  sourceRef          String
+  normalizedTreeHash String
+  normalizedTreeRef  String
+  
+  vendor             Vendor   @relation(fields: [vendorId], references: [id])
+  fromChanges        ClassifiedChange[] @relation("FromSnapshot")
+  toChanges          ClassifiedChange[] @relation("ToSnapshot")
+  
+  fetchedAt          DateTime @default(now())
+}
+
+model ClassifiedChange {
+  id             String   @id @default(uuid())
+  fromSnapshotId String
+  toSnapshotId   String
+  classification String   // "breaking", "non_breaking", "deprecation", "new_feature"
+  confidence     Float
+  rationale      String
+  ruleTriggered  String?
+  
+  fromSnapshot   SpecSnapshot @relation("FromSnapshot", fields: [fromSnapshotId], references: [id])
+  toSnapshot     SpecSnapshot @relation("ToSnapshot", fields: [toSnapshotId], references: [id])
+  usageSites     UsageSite[]
+  
+  createdAt      DateTime @default(now())
+}
+
+model Installation {
+  id           String   @id @default(uuid())
+  repoFullName String
+  installationId String?
+  
+  usageSites   UsageSite[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model UsageSite {
+  id              String   @id @default(uuid())
+  changeId        String
+  installationId  String?
+  repoFullName    String
+  filePath        String
+  startLine       Int
+  endLine         Int
+  language        String
+  matchConfidence Float
+  
+  change          ClassifiedChange @relation(fields: [changeId], references: [id])
+  installation    Installation?    @relation(fields: [installationId], references: [id])
+  patches         CandidatePatch[]
+  
+  detectedAt      DateTime @default(now())
+}
+
+model CandidatePatch {
+  id                  String   @id @default(uuid())
+  usageSiteId         String
+  diff                String
+  generatorModel      String
+  generatorConfidence Float
+  verified            Boolean  @default(false)
+  verificationLog     String?
+  
+  usageSite           UsageSite @relation(fields: [usageSiteId], references: [id])
+  
+  createdAt           DateTime @default(now())
+}
