@@ -11,14 +11,16 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@vigil/schemas": "workspace:*",
+    "@fastify/cors": "^11.3.0",
+    "@vigil/database": "workspace:^",
     "@vigil/logger": "workspace:*",
+    "@vigil/schemas": "workspace:*",
     "fastify": "^4.26.2"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@vigil/config": "workspace:*",
-    "typescript": "^5.0.0",
     "eslint": "^9.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   }
 }
