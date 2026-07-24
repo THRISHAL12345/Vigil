@@ -8,16 +8,20 @@
     "build": "tsc",
     "lint": "eslint src/",
     "dev": "tsc --watch",
-    "start": "probot run ./dist/index.js"
+    "start": "probot run ./dist/index.js",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@vigil/schemas": "workspace:*",
+    "@vigil/database": "workspace:^",
     "@vigil/logger": "workspace:*",
+    "@vigil/queue": "workspace:^",
+    "@vigil/schemas": "workspace:*",
     "probot": "^13.0.1"
   },
   "devDependencies": {
     "@vigil/config": "workspace:*",
+    "eslint": "^9.0.0",
     "typescript": "^5.0.0",
-    "eslint": "^9.0.0"
+    "vitest": "^4.1.10"
   }
 }

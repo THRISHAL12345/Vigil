@@ -85,9 +85,15 @@ importers:
 
   apps/github-app:
     dependencies:
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@vigil/queue':
+        specifier: workspace:^
+        version: link:../../packages/queue
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -104,6 +110,9 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@20.19.43)(vite@8.1.5(@types/node@20.19.43)(jiti@2.7.0))
 
   packages/config:
     devDependencies:
