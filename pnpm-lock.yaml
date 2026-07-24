@@ -120,6 +120,28 @@ importers:
         specifier: ^8.0.0
         version: 8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
 
+  packages/language-adapters:
+    dependencies:
+      '@vigil/logger':
+        specifier: workspace:*
+        version: link:../logger
+      '@vigil/schemas':
+        specifier: workspace:*
+        version: link:../schemas
+      web-tree-sitter:
+        specifier: ^0.22.6
+        version: 0.22.6
+    devDependencies:
+      '@vigil/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   packages/logger:
     dependencies:
       pino:
@@ -147,6 +169,22 @@ importers:
       zod:
         specifier: ^3.23.0
         version: 3.25.76
+    devDependencies:
+      '@vigil/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  packages/vendor-adapters:
+    dependencies:
+      '@vigil/schemas':
+        specifier: workspace:*
+        version: link:../schemas
     devDependencies:
       '@vigil/config':
         specifier: workspace:*
@@ -309,21 +347,24 @@ importers:
 
   services/usage-mapper:
     dependencies:
+      '@vigil/language-adapters':
+        specifier: workspace:*
+        version: link:../../packages/language-adapters
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@vigil/vendor-adapters':
+        specifier: workspace:*
+        version: link:../../packages/vendor-adapters
       bullmq:
         specifier: ^5.0.0
         version: 5.81.1
       ioredis:
         specifier: ^5.3.0
         version: 5.11.1
-      web-tree-sitter:
-        specifier: ^0.20.8
-        version: 0.20.8
     devDependencies:
       '@vigil/config':
         specifier: workspace:*
@@ -3718,8 +3759,8 @@ packages:
       jsdom:
         optional: true
 
-  web-tree-sitter@0.20.8:
-    resolution: {integrity: sha512-weOVgZ3aAARgdnb220GqYuh7+rZU0Ka9k9yfKtGAzEYMa6GgiCzW9JjQRJyCJakvibQW+dfjJdihjInKuuCAUQ==}
+  web-tree-sitter@0.22.6:
+    resolution: {integrity: sha512-hS87TH71Zd6mGAmYCvlgxeGDjqd9GTeqXNqTT+u0Gs51uIozNIaaq/kUAbV/Zf56jb2ZOyG8BxZs2GG9wbLi6Q==}
 
   which-boxed-primitive@1.1.1:
     resolution: {integrity: sha512-TbX3mj8n0odCBFVlY8AxkqcHASw3L60jIuF8jFP78az3C2YhmGvqbHBpAjTRH2/xqYunrJ9g1jSyjCjpoWzIAA==}
@@ -7533,7 +7574,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  web-tree-sitter@0.20.8: {}
+  web-tree-sitter@0.22.6: {}
 
   which-boxed-primitive@1.1.1:
     dependencies:
