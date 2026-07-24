@@ -1,0 +1,46 @@
+import { logger } from "@vigil/logger";
+import { Worker, Job } from "bullmq";
+import IORedis from "ioredis";
+import { ClassifiedChange, UsageSite } from "@vigil/schemas";
+// import Parser from "web-tree-sitter"; // To be implemented in a future phase
+
+const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379");
+
+interface MapperJobData {
+  change: ClassifiedChange;
+  targetRepoFullName: string;
+  installationId: string | null;
+}
+
+const worker = new Worker(
+  "usage-mapper-queue",
+  async (job: Job<MapperJobData>) => {
+    logger.info({ jobId: job.id, repo: job.data.targetRepoFullName }, "Processing usage-mapper job");
+    try {
+      // In a real implementation:
+      // 1. Fetch repo contents/shallow clone
+      // 2. Init web-tree-sitter parser
+      // 3. Scan files using vendor SurfaceMap patterns
+      // 4. Return array of UsageSite records
+      
+      const sites: UsageSite[] = [];
+      logger.info({ sitesFound: sites.length, jobId: job.id }, "Successfully mapped usage sites");
+      return sites;
+    } catch (error) {
+      logger.error({ err: error, jobId: job.id }, "Failed to process usage-mapper job");
+      throw error;
+    }
+  },
+  { connection }
+);
+
+worker.on("ready", () => {
+  logger.info("usage-mapper worker is running and listening for jobs");
+});
+
+// Graceful shutdown
+process.on("SIGTERM", async () => {
+  logger.info("SIGTERM received, shutting down usage-mapper worker...");
+  await worker.close();
+  process.exit(0);
+});
