@@ -1,10 +1,11 @@
 import { logger } from "@vigil/logger";
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
+import { Redis } from "ioredis";
 import { VerifiedPatch, PullRequestRecord } from "@vigil/schemas";
+import crypto from "crypto";
 // import { Octokit } from "@octokit/rest"; // To be configured with GitHub App auth in a future phase
 
-const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379");
+const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 const worker = new Worker(
   "pr-author-queue",
@@ -12,7 +13,7 @@ const worker = new Worker(
     logger.info({ jobId: job.id, patchId: job.data.id }, "Processing pr-author job");
     try {
       // CRITICAL: NEVER auto-merge. Explicitly stated in AGENTS.md §6.6
-      if (job.data.status !== "passed") {
+      if (job.data.testsPassed !== true) {
         logger.warn({ patchId: job.data.id }, "Patch failed verification, skipping PR creation");
         return null;
       }
@@ -24,17 +25,15 @@ const worker = new Worker(
       // 4. Open Draft PR with classification rationale and sandbox logs link
       
       const prRecord: PullRequestRecord = {
-        id: "mock-pr-123",
-        installationId: "mock-install-456",
-        patchId: job.data.id,
-        repositoryFullName: "demo/repo",
-        prNumber: 1,
-        prUrl: "https://github.com/demo/repo/pull/1",
+        id: crypto.randomUUID(),
+        installationId: crypto.randomUUID(),
+        verifiedPatchId: job.data.id,
+        githubPrUrl: "https://github.com/demo/repo/pull/1",
         status: "open",
         openedAt: new Date().toISOString()
       };
       
-      logger.info({ prNumber: prRecord.prNumber, repo: prRecord.repositoryFullName }, "Successfully opened draft PR");
+      logger.info({ githubPrUrl: prRecord.githubPrUrl }, "Successfully opened draft PR");
       return prRecord;
     } catch (error) {
       logger.error({ err: error, jobId: job.id }, "Failed to process pr-author job");

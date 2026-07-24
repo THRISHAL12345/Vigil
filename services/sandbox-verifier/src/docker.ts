@@ -15,10 +15,12 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
   const verified: VerifiedPatch = {
     ...patch,
     verifiedAt: new Date().toISOString(),
-    status: "passed",
-    sandboxLogsRef: `s3://vigil-sandbox-logs/${patch.usageSiteId}-${patch.id}.log`
+    sandboxRunId: crypto.randomUUID(),
+    testSuiteDetected: true,
+    testsPassed: true,
+    logRef: `s3://vigil-sandbox-logs/${patch.usageSiteId}-${patch.id}.log`
   };
   
-  logger.info({ verifiedId: verified.id, status: verified.status }, "Sandbox verification complete");
+  logger.info({ verifiedId: verified.id, testsPassed: verified.testsPassed }, "Sandbox verification complete");
   return verified;
 }

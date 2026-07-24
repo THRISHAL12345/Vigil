@@ -1,10 +1,10 @@
 import { logger } from "@vigil/logger";
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
+import { Redis } from "ioredis";
 import { ClassifiedChange, UsageSite, CandidatePatch } from "@vigil/schemas";
 import crypto from "crypto";
 
-const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379");
+const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 interface FixJobData {
   change: ClassifiedChange;

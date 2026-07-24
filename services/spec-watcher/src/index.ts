@@ -1,10 +1,10 @@
 import { logger } from "@vigil/logger";
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
+import { Redis } from "ioredis";
 import { fetchVendorSpec } from "./fetcher.js";
 import { VendorConfig } from "@vigil/schemas";
 
-const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379");
+const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
 const worker = new Worker(
   "spec-watcher-queue",
