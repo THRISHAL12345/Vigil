@@ -58,13 +58,17 @@ export default (app: Probot) => {
       try {
         // In v1, we just scan against recent changes across all tracked vendors.
         const recentChanges = await prisma.classifiedChange.findMany({
-          orderBy: { detectedAt: "desc" },
+          orderBy: { createdAt: "desc" },
           take: 50
         });
 
         for (const change of recentChanges) {
+          const schemaChange = {
+            ...change,
+            createdAt: change.createdAt.toISOString()
+          };
           await usageMapperQueue.add("map-usage", {
-            change,
+            change: schemaChange as any,
             targetRepoFullName: repoFullName,
             installationId
           });
