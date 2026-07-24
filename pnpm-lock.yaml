@@ -245,15 +245,12 @@ importers:
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@vigil/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
-      bullmq:
-        specifier: ^5.0.0
-        version: 5.81.1
-      ioredis:
-        specifier: ^5.3.0
-        version: 5.11.1
     devDependencies:
       '@vigil/config':
         specifier: workspace:*

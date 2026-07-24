@@ -13,8 +13,7 @@
   "dependencies": {
     "@vigil/schemas": "workspace:*",
     "@vigil/logger": "workspace:*",
-    "bullmq": "^5.0.0",
-    "ioredis": "^5.3.0"
+    "@vigil/queue": "workspace:*"
   },
   "devDependencies": {
     "@vigil/config": "workspace:*",

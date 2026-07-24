@@ -1,7 +1,24 @@
 import { z } from "zod";
 
-// A simplified generic schema delta representation for the rules engine
-export type SchemaDelta = any; // In a full implementation, this would be a strict tree-diff type
+export type SchemaDeltaKind =
+  | "field_modified"
+  | "field_added"
+  | "field_removed"
+  | "endpoint_removed"
+  | "endpoint_added"
+  | "enum_value_removed"
+  | "enum_value_added";
+
+export type SchemaLocation = "request_schema" | "response_schema" | "path" | "query" | "header";
+
+export interface SchemaDelta {
+  kind: SchemaDeltaKind;
+  location: SchemaLocation;
+  path: string; // e.g., "POST /v1/charges"
+  fieldName?: string;
+  before?: any;
+  after?: any;
+}
 
 export interface ClassificationRule {
   id: string;

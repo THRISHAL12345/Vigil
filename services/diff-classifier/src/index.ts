@@ -1,10 +1,7 @@
 import { logger } from "@vigil/logger";
-import { Worker, Job } from "bullmq";
-import { Redis } from "ioredis";
 import { classifyDelta } from "./classifier.js";
 import { SpecSnapshot, SchemaDelta } from "@vigil/schemas";
-
-const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+import { createWorker, Job } from "@vigil/queue";
 
 interface DiffJobData {
   fromSnapshot: SpecSnapshot;
@@ -12,14 +9,14 @@ interface DiffJobData {
   deltas: SchemaDelta[];
 }
 
-const worker = new Worker(
+const worker = createWorker<DiffJobData>(
   "diff-classifier-queue",
   async (job: Job<DiffJobData>) => {
     logger.info({ jobId: job.id }, "Processing diff-classifier job");
     try {
       const { fromSnapshot, toSnapshot, deltas } = job.data;
       
-      const classifiedChanges = deltas.map(delta => 
+      const classifiedChanges = deltas.map((delta: SchemaDelta) => 
         classifyDelta(delta, fromSnapshot, toSnapshot)
       );
 
@@ -29,8 +26,7 @@ const worker = new Worker(
       logger.error({ err: error, jobId: job.id }, "Failed to process diff-classifier job");
       throw error;
     }
-  },
-  { connection }
+  }
 );
 
 worker.on("ready", () => {
