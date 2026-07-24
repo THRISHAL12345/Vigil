@@ -1,0 +1,22 @@
+{
+  "name": "@vigil/logger",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0"
+  },
+  "devDependencies": {
+    "@vigil/config": "workspace:*",
+    "typescript": "^5.0.0",
+    "eslint": "^9.0.0"
+  }
+}
