@@ -1,0 +1,19 @@
+{
+  "name": "@vigil/vendor-adapters",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@vigil/schemas": "workspace:*"
+  },
+  "devDependencies": {
+    "@vigil/config": "workspace:*",
+    "typescript": "^5.0.0",
+    "eslint": "^9.0.0"
+  }
+}
