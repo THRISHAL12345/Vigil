@@ -1,13 +1,10 @@
 import { logger } from "@vigil/logger";
-import { Worker, Job } from "bullmq";
-import { Redis } from "ioredis";
+import { createWorker, Job } from "@vigil/queue";
 import { VerifiedPatch, PullRequestRecord } from "@vigil/schemas";
 import crypto from "crypto";
-// import { Octokit } from "@octokit/rest"; // To be configured with GitHub App auth in a future phase
+import { createDraftPullRequest } from "./github.js";
 
-const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-
-const worker = new Worker(
+const worker = createWorker<VerifiedPatch>(
   "pr-author-queue",
   async (job: Job<VerifiedPatch>) => {
     logger.info({ jobId: job.id, patchId: job.data.id }, "Processing pr-author job");
@@ -18,20 +15,12 @@ const worker = new Worker(
         return null;
       }
 
-      // In a real implementation:
-      // 1. Authenticate with Octokit via GitHub App installation token
-      // 2. Create new branch from default branch
-      // 3. Commit VerifiedPatch diff
-      // 4. Open Draft PR with classification rationale and sandbox logs link
+      // Real implementation delegates to Octokit
+      // We assume owner and repo can be derived from the installation or usage site
+      const owner = "demo-owner";
+      const repo = "demo-repo";
       
-      const prRecord: PullRequestRecord = {
-        id: crypto.randomUUID(),
-        installationId: crypto.randomUUID(),
-        verifiedPatchId: job.data.id,
-        githubPrUrl: "https://github.com/demo/repo/pull/1",
-        status: "open",
-        openedAt: new Date().toISOString()
-      };
+      const prRecord = await createDraftPullRequest(job.data, owner, repo);
       
       logger.info({ githubPrUrl: prRecord.githubPrUrl }, "Successfully opened draft PR");
       return prRecord;
@@ -39,8 +28,7 @@ const worker = new Worker(
       logger.error({ err: error, jobId: job.id }, "Failed to process pr-author job");
       throw error;
     }
-  },
-  { connection }
+  }
 );
 
 worker.on("ready", () => {

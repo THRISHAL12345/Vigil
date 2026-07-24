@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@vigil/logger": "workspace:*",
+    "@vigil/queue": "workspace:^",
     "@vigil/schemas": "workspace:*",
     "bullmq": "^5.0.0",
     "execa": "^10.0.0",

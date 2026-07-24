@@ -311,11 +311,14 @@ importers:
   services/pr-author:
     dependencies:
       '@octokit/rest':
-        specifier: ^20.0.0
+        specifier: ^20.1.2
         version: 20.1.2
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@vigil/queue':
+        specifier: workspace:^
+        version: link:../../packages/queue
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -344,6 +347,9 @@ importers:
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@vigil/queue':
+        specifier: workspace:^
+        version: link:../../packages/queue
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
