@@ -1,12 +1,9 @@
 import { logger } from "@vigil/logger";
-import { Worker, Job } from "bullmq";
-import { Redis } from "ioredis";
+import { createWorker, Job } from "@vigil/queue";
 import { runInSandbox } from "./docker.js";
 import { CandidatePatch } from "@vigil/schemas";
 
-const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-
-const worker = new Worker(
+const worker = createWorker<CandidatePatch>(
   "sandbox-verifier-queue",
   async (job: Job<CandidatePatch>) => {
     logger.info({ jobId: job.id, patchId: job.data.id }, "Processing sandbox-verifier job");
@@ -17,8 +14,7 @@ const worker = new Worker(
       logger.error({ err: error, jobId: job.id }, "Failed to process sandbox-verifier job");
       throw error;
     }
-  },
-  { connection }
+  }
 );
 
 worker.on("ready", () => {
