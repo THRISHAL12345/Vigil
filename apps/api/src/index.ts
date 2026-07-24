@@ -18,7 +18,7 @@ fastify.get("/health", async (request, reply) => {
 fastify.get("/api/v1/feed", async (request, reply) => {
   try {
     const changes = await prisma.classifiedChange.findMany({
-      orderBy: { detectedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 50
     });
     return { changes };
@@ -31,13 +31,13 @@ fastify.get("/api/v1/feed", async (request, reply) => {
 fastify.get("/api/v1/installations/:id/reports", async (request: any, reply) => {
   const { id } = request.params;
   try {
-    const installation = await prisma.installation.findUnique({
+    const installation = await prisma.installation.findFirst({
       where: { installationId: id },
       include: {
         usageSites: {
           include: {
             change: true,
-            candidatePatch: true
+            patches: true
           }
         }
       }
