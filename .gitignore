@@ -21,3 +21,6 @@ Thumbs.db
 # sandbox logs (if testing locally outside container)
 logs/
 *.log
+
+# generated
+packages/database/src/generated/
