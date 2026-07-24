@@ -1,0 +1,21 @@
+{
+  "name": "@vigil/schemas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@vigil/config": "workspace:*",
+    "typescript": "^5.0.0",
+    "eslint": "^9.0.0"
+  }
+}
