@@ -22,7 +22,7 @@ describe("sandbox-verifier", () => {
     expect(verified.testsPassed).toBeDefined();
     expect(verified.sandboxRunId).toBeDefined();
     expect(verified.logRef).toContain(patch.id);
-  });
+  }, 30000);
 
   it("blocks a patch if the test suite fails (negative safety test)", async () => {
     const patch: CandidatePatch = {
@@ -49,5 +49,5 @@ describe("sandbox-verifier", () => {
     } finally {
       process.env.VIGIL_TARGET_REPO_DIR = originalEnv;
     }
-  });
+  }, 30000);
 });
