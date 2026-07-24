@@ -1,0 +1,25 @@
+{
+  "vendorId": "stripe",
+  "description": "field marked as deprecated on response",
+  "fromSpecRef": "v2083",
+  "toSpecRef": "v2084",
+  "mockDeltas": [
+    {
+      "kind": "field_modified",
+      "location": "response_schema",
+      "path": "GET /v1/charges.receipt_url",
+      "fieldName": "receipt_url",
+      "before": {
+        "deprecated": false
+      },
+      "after": {
+        "deprecated": true
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "GET /v1/charges.receipt_url",
+    "classification": "deprecation",
+    "ruleTriggered": "field_marked_deprecated"
+  }
+}

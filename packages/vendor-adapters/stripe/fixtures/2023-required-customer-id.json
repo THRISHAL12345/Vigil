@@ -1,0 +1,25 @@
+{
+  "vendorId": "stripe",
+  "description": "customer_id became required on POST /v1/charges",
+  "fromSpecRef": "v2081",
+  "toSpecRef": "v2082",
+  "mockDeltas": [
+    {
+      "kind": "field_modified",
+      "location": "request_schema",
+      "path": "POST /v1/charges.customer_id",
+      "fieldName": "customer_id",
+      "before": {
+        "required": false
+      },
+      "after": {
+        "required": true
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /v1/charges.customer_id",
+    "classification": "breaking",
+    "ruleTriggered": "required_field_added"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "vendorId": "stripe",
+  "description": "new endpoint added GET /v1/customers",
+  "fromSpecRef": "v2082",
+  "toSpecRef": "v2083",
+  "mockDeltas": [
+    {
+      "kind": "endpoint_added",
+      "location": "api_surface",
+      "path": "GET /v1/customers",
+      "endpointName": "/v1/customers"
+    }
+  ],
+  "expectedChange": {
+    "path": "GET /v1/customers",
+    "classification": "new_feature",
+    "ruleTriggered": "new_endpoint_added"
+  }
+}
