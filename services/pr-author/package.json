@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^20.1.2",
+    "@vigil/database": "workspace:^",
     "@vigil/logger": "workspace:*",
     "@vigil/queue": "workspace:^",
     "@vigil/schemas": "workspace:*",

@@ -1,6 +1,7 @@
 import { logger } from "@vigil/logger";
 import { createWorker, Job } from "@vigil/queue";
 import { VerifiedPatch, PullRequestRecord } from "@vigil/schemas";
+import { prisma } from "@vigil/database";
 import crypto from "crypto";
 import { createDraftPullRequest } from "./github.js";
 
@@ -16,11 +17,24 @@ const worker = createWorker<VerifiedPatch>(
       }
 
       // Real implementation delegates to Octokit
-      // We assume owner and repo can be derived from the installation or usage site
-      const owner = "demo-owner";
-      const repo = "demo-repo";
+      // Fetch the usage site and related change to get repo details and template context
+      const usageSite = await prisma.usageSite.findUnique({
+        where: { id: job.data.usageSiteId },
+        include: { change: true }
+      });
+
+      if (!usageSite) {
+        logger.error({ usageSiteId: job.data.usageSiteId }, "Usage site not found for patch");
+        return null;
+      }
+
+      const [owner, repo] = usageSite.repoFullName.split("/");
+      if (!owner || !repo) {
+        logger.error({ repoFullName: usageSite.repoFullName }, "Invalid repository full name format");
+        return null;
+      }
       
-      const prRecord = await createDraftPullRequest(job.data, owner, repo);
+      const prRecord = await createDraftPullRequest(job.data, usageSite, owner, repo);
       
       logger.info({ githubPrUrl: prRecord.githubPrUrl }, "Successfully opened draft PR");
       return prRecord;
