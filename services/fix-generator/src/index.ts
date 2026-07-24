@@ -3,8 +3,10 @@ import { Worker, Job } from "bullmq";
 import { Redis } from "ioredis";
 import { ClassifiedChange, UsageSite, CandidatePatch } from "@vigil/schemas";
 import crypto from "crypto";
+import Groq from "groq-sdk";
 
 const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy" });
 
 interface FixJobData {
   change: ClassifiedChange;
@@ -16,17 +18,43 @@ const worker = new Worker(
   async (job: Job<FixJobData>) => {
     logger.info({ jobId: job.id, usageSiteId: job.data.usageSite.id }, "Processing fix-generator job");
     try {
+      const { change, usageSite } = job.data;
+      
       // In a real implementation:
       // 1. Fetch exact file context using scoped read tools
-      // 2. Invoke Anthropic Claude with strict context bounds (§6.4)
-      // 3. Generate CandidatePatch diff
       
+      const systemPrompt = `You are an expert patch generator for a repository. 
+You will be given a vendor API change and a specific usage site in a codebase.
+Generate a strict unified diff to fix the usage site according to the API change.
+Output only the diff string, nothing else.`;
+
+      const userPrompt = `Change Classification: ${change.classification}
+Rationale: ${change.rationale}
+Usage Site: ${usageSite.filePath} (Lines ${usageSite.startLine}-${usageSite.endLine})
+
+Please provide the unified diff to fix this usage site.`;
+
+      let generatedDiff = "--- a/file\n+++ b/file\n+ // TODO: implement fix";
+      let generatorModel = "groq-llama3-70b-8192";
+
+      if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== "dummy") {
+        const completion = await groq.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          model: "llama3-70b-8192",
+          temperature: 0,
+        });
+        generatedDiff = completion.choices[0]?.message?.content || generatedDiff;
+      }
+
       const patch: CandidatePatch = {
         id: crypto.randomUUID(),
-        usageSiteId: job.data.usageSite.id,
-        diff: "--- a/file\n+++ b/file\n+ // TODO: implement fix",
-        generatorModel: "claude-3-5-sonnet-20240620",
-        generatorConfidence: 0.8,
+        usageSiteId: usageSite.id,
+        diff: generatedDiff,
+        generatorModel,
+        generatorConfidence: 0.9,
         createdAt: new Date().toISOString()
       };
       
