@@ -1,0 +1,16 @@
+{
+  "vendorId": "stripe",
+  "changeId": "evt_mock_001",
+  "commitSha": "abc123mocksha",
+  "classification": "breaking",
+  "confidence": 1.0,
+  "ruleTriggered": "required_field_added",
+  "rationale": "Field `customer_id` on POST /v1/charges became required; existing callers omitting it will now fail at request time.",
+  "diff": {
+    "kind": "field_modified",
+    "location": "request_schema",
+    "path": "POST /v1/charges -> customer_id",
+    "before": { "required": false },
+    "after": { "required": true }
+  }
+}
