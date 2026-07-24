@@ -1,0 +1,22 @@
+# node_modules
+node_modules/
+dist/
+build/
+out/
+coverage/
+
+# environment
+.env
+.env.local
+.env.*.local
+
+# turborepo
+.turbo/
+
+# system
+.DS_Store
+Thumbs.db
+
+# sandbox logs (if testing locally outside container)
+logs/
+*.log
