@@ -1,0 +1,23 @@
+{
+  "vendorId": "openai",
+  "description": "Added vision support for chat completions",
+  "fromSpecRef": "v1.0.0",
+  "toSpecRef": "v1.1.0",
+  "mockDeltas": [
+    {
+      "kind": "field_added",
+      "location": "request_schema",
+      "path": "POST /v1/chat/completions -> messages.content.image_url",
+      "fieldName": "image_url",
+      "before": null,
+      "after": {
+        "required": false
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /v1/chat/completions -> messages.content.image_url",
+    "classification": "non_breaking",
+    "ruleTriggered": "optional_field_added"
+  }
+}

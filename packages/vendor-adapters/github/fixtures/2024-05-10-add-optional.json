@@ -1,0 +1,23 @@
+{
+  "vendorId": "github",
+  "description": "Added optional per_page param",
+  "fromSpecRef": "v1.2.0",
+  "toSpecRef": "v1.3.0",
+  "mockDeltas": [
+    {
+      "kind": "field_added",
+      "location": "request_schema",
+      "path": "GET /repos/{owner}/{repo}/issues -> per_page",
+      "fieldName": "per_page",
+      "before": null,
+      "after": {
+        "required": false
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "GET /repos/{owner}/{repo}/issues -> per_page",
+    "classification": "non_breaking",
+    "ruleTriggered": "optional_field_added"
+  }
+}

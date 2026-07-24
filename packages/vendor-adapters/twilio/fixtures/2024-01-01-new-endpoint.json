@@ -1,0 +1,19 @@
+{
+  "vendorId": "twilio",
+  "description": "new endpoint added POST /2010-04-01/Accounts/{AccountSid}/Messages.json",
+  "fromSpecRef": "v1.0.0",
+  "toSpecRef": "v1.1.0",
+  "mockDeltas": [
+    {
+      "kind": "endpoint_added",
+      "location": "api_surface",
+      "path": "POST /2010-04-01/Accounts/{AccountSid}/Messages.json",
+      "endpointName": "/2010-04-01/Accounts/{AccountSid}/Messages.json"
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /2010-04-01/Accounts/{AccountSid}/Messages.json",
+    "classification": "new_feature",
+    "ruleTriggered": "new_endpoint_added"
+  }
+}

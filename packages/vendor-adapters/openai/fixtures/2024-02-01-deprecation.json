@@ -1,0 +1,25 @@
+{
+  "vendorId": "openai",
+  "description": "Deprecated engines completions endpoint",
+  "fromSpecRef": "v1.2.0",
+  "toSpecRef": "v1.3.0",
+  "mockDeltas": [
+    {
+      "kind": "field_modified",
+      "location": "request_schema",
+      "path": "POST /v1/engines/{engine_id}/completions -> logprobs",
+      "fieldName": "logprobs",
+      "before": {
+        "deprecated": false
+      },
+      "after": {
+        "deprecated": true
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /v1/engines/{engine_id}/completions -> logprobs",
+    "classification": "deprecation",
+    "ruleTriggered": "field_marked_deprecated"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "vendorId": "github",
+  "description": "Added new endpoint",
+  "fromSpecRef": "v1.0.0",
+  "toSpecRef": "v1.1.0",
+  "mockDeltas": [
+    {
+      "kind": "endpoint_added",
+      "location": "api_surface",
+      "path": "POST /repos/{owner}/{repo}/hooks",
+      "endpointName": "/repos/{owner}/{repo}/hooks"
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /repos/{owner}/{repo}/hooks",
+    "classification": "new_feature",
+    "ruleTriggered": "new_endpoint_added"
+  }
+}

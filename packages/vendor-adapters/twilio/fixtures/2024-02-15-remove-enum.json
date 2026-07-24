@@ -1,0 +1,19 @@
+{
+  "vendorId": "twilio",
+  "description": "enum value fax removed from channel",
+  "fromSpecRef": "v1.1.0",
+  "toSpecRef": "v1.2.0",
+  "mockDeltas": [
+    {
+      "kind": "endpoint_removed",
+      "location": "api_surface",
+      "path": "GET /2010-04-01/Accounts/{AccountSid}/Calls.json",
+      "endpointName": "/2010-04-01/Accounts/{AccountSid}/Calls.json"
+    }
+  ],
+  "expectedChange": {
+    "path": "GET /2010-04-01/Accounts/{AccountSid}/Calls.json",
+    "classification": "breaking",
+    "ruleTriggered": "endpoint_removed"
+  }
+}

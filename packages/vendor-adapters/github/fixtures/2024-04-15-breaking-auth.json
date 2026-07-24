@@ -1,0 +1,25 @@
+{
+  "vendorId": "github",
+  "description": "Removed field from request",
+  "fromSpecRef": "v1.1.0",
+  "toSpecRef": "v1.2.0",
+  "mockDeltas": [
+    {
+      "kind": "field_modified",
+      "location": "request_schema",
+      "path": "GET /user -> auth",
+      "fieldName": "auth",
+      "before": {
+        "required": false
+      },
+      "after": {
+        "required": true
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "GET /user -> auth",
+    "classification": "breaking",
+    "ruleTriggered": "required_field_added"
+  }
+}

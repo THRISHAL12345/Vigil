@@ -1,0 +1,23 @@
+{
+  "vendorId": "twilio",
+  "description": "added optional statusCallback param",
+  "fromSpecRef": "v1.2.0",
+  "toSpecRef": "v1.3.0",
+  "mockDeltas": [
+    {
+      "kind": "field_added",
+      "location": "request_schema",
+      "path": "POST /Calls -> statusCallback",
+      "fieldName": "statusCallback",
+      "before": null,
+      "after": {
+        "required": false
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /Calls -> statusCallback",
+    "classification": "non_breaking",
+    "ruleTriggered": "optional_field_added"
+  }
+}

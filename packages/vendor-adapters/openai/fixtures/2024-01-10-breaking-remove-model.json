@@ -1,0 +1,25 @@
+{
+  "vendorId": "openai",
+  "description": "Removed gpt-3.5-turbo-0301 from model enum",
+  "fromSpecRef": "v1.1.0",
+  "toSpecRef": "v1.2.0",
+  "mockDeltas": [
+    {
+      "kind": "field_modified",
+      "location": "request_schema",
+      "path": "POST /v1/chat/completions -> model",
+      "fieldName": "model",
+      "before": {
+        "required": false
+      },
+      "after": {
+        "required": true
+      }
+    }
+  ],
+  "expectedChange": {
+    "path": "POST /v1/chat/completions -> model",
+    "classification": "breaking",
+    "ruleTriggered": "required_field_added"
+  }
+}
