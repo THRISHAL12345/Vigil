@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/vigil.png" alt="Vigil Banner" width="100%" />
+  <img src="docs/assets/Vigil.png" alt="Vigil Banner" width="100%" />
 
   <br />
   <br />
