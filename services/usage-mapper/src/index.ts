@@ -1,10 +1,8 @@
 import { logger } from "@vigil/logger";
-import { Worker, Job } from "bullmq";
-import { Redis } from "ioredis";
 import { ClassifiedChange, UsageSite } from "@vigil/schemas";
 import { createParser } from "@vigil/language-adapters";
 import { getSurfaceMap } from "@vigil/vendor-adapters";
-const connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+import { createWorker, Job } from "@vigil/queue";
 
 interface MapperJobData {
   change: ClassifiedChange;
@@ -12,7 +10,7 @@ interface MapperJobData {
   installationId: string | null;
 }
 
-const worker = new Worker(
+const worker = createWorker<MapperJobData>(
   "usage-mapper-queue",
   async (job: Job<MapperJobData>) => {
     logger.info({ jobId: job.id, repo: job.data.targetRepoFullName }, "Processing usage-mapper job");
@@ -41,8 +39,7 @@ const worker = new Worker(
       logger.error({ err: error, jobId: job.id }, "Failed to process usage-mapper job");
       throw error;
     }
-  },
-  { connection }
+  }
 );
 
 worker.on("ready", () => {

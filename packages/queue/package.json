@@ -1,0 +1,21 @@
+{
+  "name": "@vigil/queue",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@vigil/logger": "workspace:*",
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.3.0"
+  },
+  "devDependencies": {
+    "@vigil/config": "workspace:*",
+    "typescript": "^5.0.0",
+    "eslint": "^9.0.0"
+  }
+}

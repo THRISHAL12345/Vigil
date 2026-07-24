@@ -186,6 +186,28 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  packages/queue:
+    dependencies:
+      '@vigil/logger':
+        specifier: workspace:*
+        version: link:../logger
+      bullmq:
+        specifier: ^5.0.0
+        version: 5.81.1
+      ioredis:
+        specifier: ^5.3.0
+        version: 5.11.1
+    devDependencies:
+      '@vigil/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   packages/schemas:
     dependencies:
       zod:
@@ -375,18 +397,15 @@ importers:
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@vigil/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
       '@vigil/vendor-adapters':
         specifier: workspace:*
         version: link:../../packages/vendor-adapters
-      bullmq:
-        specifier: ^5.0.0
-        version: 5.81.1
-      ioredis:
-        specifier: ^5.3.0
-        version: 5.11.1
     devDependencies:
       '@vigil/config':
         specifier: workspace:*
