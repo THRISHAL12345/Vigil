@@ -342,6 +342,9 @@ importers:
       '@ai-sdk/groq':
         specifier: ^4.0.13
         version: 4.0.13(zod@3.25.76)
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -419,6 +422,9 @@ importers:
 
   services/sandbox-verifier:
     dependencies:
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -499,6 +505,9 @@ importers:
 
   services/usage-mapper:
     dependencies:
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@vigil/language-adapters':
         specifier: workspace:*
         version: link:../../packages/language-adapters

@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@vigil/database": "workspace:^",
     "@vigil/logger": "workspace:*",
     "@vigil/queue": "workspace:^",
     "@vigil/schemas": "workspace:*",

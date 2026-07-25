@@ -19,6 +19,7 @@ model Vendor {
   
   snapshots            SpecSnapshot[]
   surfaceMaps          SurfaceMap[]
+  classifiedChanges    ClassifiedChange[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -52,13 +53,16 @@ model SpecSnapshot {
 
 model ClassifiedChange {
   id             String   @id @default(uuid())
+  vendorId       String
   fromSnapshotId String
   toSnapshotId   String
   classification String   // "breaking", "non_breaking", "deprecation", "new_feature"
   confidence     Float
   rationale      String
   ruleTriggered  String?
+  path           String
   
+  vendor         Vendor   @relation(fields: [vendorId], references: [id])
   fromSnapshot   SpecSnapshot @relation("FromSnapshot", fields: [fromSnapshotId], references: [id])
   toSnapshot     SpecSnapshot @relation("ToSnapshot", fields: [toSnapshotId], references: [id])
   usageSites     UsageSite[]
@@ -67,9 +71,10 @@ model ClassifiedChange {
 }
 
 model Installation {
-  id           String   @id @default(uuid())
-  repoFullName String
+  id             String   @id @default(uuid())
+  repoFullName   String
   installationId String?
+  trackedVendors String[] // Array of vendor IDs that this installation is opted-in to
   
   usageSites   UsageSite[]
   

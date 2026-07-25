@@ -1,7 +1,7 @@
 import { logger } from "@vigil/logger";
 import { classifyDelta } from "./classifier.js";
 import { SpecSnapshot, SchemaDelta } from "@vigil/schemas";
-import { createWorker, Job } from "@vigil/queue";
+import { createWorker, Job, createQueue } from "@vigil/queue";
 import { computeDeltas } from "./differ.js";
 import { prisma } from "@vigil/database";
 import { loadBlob } from "@vigil/storage";
@@ -45,11 +45,49 @@ const worker = createWorker<DiffJobData>(
 
       const deltas = computeDeltas(fromTree, toTree);
       
-      const classifiedChanges = await Promise.all(deltas.map((delta: SchemaDelta) => 
+      const classifiedChangesUnsaved = await Promise.all(deltas.map((delta: SchemaDelta) => 
         classifyDelta(delta, fromSnapshot, toSnapshot)
       ));
 
-      logger.info({ count: classifiedChanges.length, jobId: job.id }, "Successfully classified changes");
+      const classifiedChanges = [];
+      for (const change of classifiedChangesUnsaved) {
+        const savedChange = await prisma.classifiedChange.create({
+          data: {
+            id: change.id,
+            vendorId: change.vendorId,
+            fromSnapshotId: change.fromSnapshotId,
+            toSnapshotId: change.toSnapshotId,
+            classification: change.classification,
+            confidence: change.confidence,
+            rationale: change.rationale,
+            ruleTriggered: change.ruleTriggered,
+            path: change.path
+          }
+        });
+        classifiedChanges.push(savedChange);
+      }
+
+      // Enqueue usage-mapper jobs for active installations that track this vendor
+      const installations = await prisma.installation.findMany({
+        where: {
+          trackedVendors: {
+            has: fromSnapshot.vendorId
+          }
+        }
+      });
+
+      const usageMapperQueue = createQueue<any>("usage-mapper-queue");
+
+      for (const change of classifiedChanges) {
+        for (const installation of installations) {
+          await usageMapperQueue.add("map-usage", {
+            changeId: change.id,
+            installationId: installation.id
+          });
+        }
+      }
+
+      logger.info({ count: classifiedChanges.length, jobId: job.id }, "Successfully classified changes and enqueued mapping jobs");
       return classifiedChanges;
     } catch (error) {
       logger.error({ err: error, jobId: job.id }, "Failed to process diff-classifier job");

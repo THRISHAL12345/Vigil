@@ -11,16 +11,17 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@vigil/schemas": "workspace:*",
-    "@vigil/logger": "workspace:*",
+    "@vigil/database": "workspace:^",
     "@vigil/language-adapters": "workspace:*",
-    "@vigil/vendor-adapters": "workspace:*",
-    "@vigil/queue": "workspace:*"
+    "@vigil/logger": "workspace:*",
+    "@vigil/queue": "workspace:*",
+    "@vigil/schemas": "workspace:*",
+    "@vigil/vendor-adapters": "workspace:*"
   },
   "devDependencies": {
     "@vigil/config": "workspace:*",
-    "typescript": "^5.0.0",
     "eslint": "^9.0.0",
+    "typescript": "^5.0.0",
     "vitest": "^4.1.10"
   }
 }

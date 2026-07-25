@@ -1,6 +1,7 @@
 import { logger } from "@vigil/logger";
-import { createWorker, Job } from "@vigil/queue";
+import { createWorker, createQueue, Job } from "@vigil/queue";
 import { ClassifiedChange, UsageSite, CandidatePatch } from "@vigil/schemas";
+import { prisma } from "@vigil/database";
 import crypto from "crypto";
 import { generateText, tool } from "ai";
 import { createGroq } from "@ai-sdk/groq";
@@ -14,21 +15,32 @@ const groq = createGroq({
 });
 
 interface FixJobData {
-  change: ClassifiedChange;
-  usageSite: UsageSite;
+  usageSiteId: string;
 }
 
 const worker = createWorker<FixJobData>(
   "fix-generator-queue",
   async (job: Job<FixJobData>) => {
-    logger.info({ jobId: job.id, usageSiteId: job.data.usageSite.id }, "Processing fix-generator job");
+    logger.info({ jobId: job.id, usageSiteId: job.data.usageSiteId }, "Processing fix-generator job");
     try {
-      const { change, usageSite } = job.data;
+      const { usageSiteId } = job.data;
       
+      const usageSiteDb = await prisma.usageSite.findUnique({
+        where: { id: usageSiteId },
+        include: { change: true, installation: true }
+      });
+
+      if (!usageSiteDb || !usageSiteDb.change || !usageSiteDb.installation) {
+        throw new Error("Could not find usageSite, change, or installation in database");
+      }
+      
+      const usageSite = usageSiteDb as unknown as UsageSite;
+      const change = usageSiteDb.change as unknown as ClassifiedChange;
+
       let targetDir = process.env.VIGIL_TARGET_REPO_DIR;
       if (!targetDir) {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
-        targetDir = path.resolve(__dirname, "../../../fixtures/demo-corpus/test-user-test-repo");
+        targetDir = path.resolve(__dirname, "../../../fixtures/demo-corpus", usageSiteDb.installation.repoFullName.replace("/", "-"));
       }
       
       const systemPrompt = `You are an expert patch generator for a repository. 
@@ -117,17 +129,26 @@ Please read the file, and then provide the unified diff to fix this usage site.`
         return null as any; // Return null (or handle according to queue expectations) to skip creating a bad patch
       }
 
-      const patch: CandidatePatch = {
-        id: crypto.randomUUID(),
-        usageSiteId: usageSite.id,
-        diff: generatedDiff,
-        generatorModel,
-        generatorConfidence,
-        createdAt: new Date().toISOString()
-      };
+      const patchId = crypto.randomUUID();
       
-      logger.info({ patchId: patch.id, jobId: job.id }, "Successfully generated patch");
-      return patch;
+      const savedPatch = await prisma.candidatePatch.create({
+        data: {
+          id: patchId,
+          usageSiteId: usageSite.id,
+          diff: generatedDiff,
+          generatorModel,
+          generatorConfidence,
+          verified: false
+        }
+      });
+      
+      const sandboxVerifierQueue = createQueue<any>("sandbox-verifier-queue");
+      await sandboxVerifierQueue.add("verify-sandbox", {
+        patchId: patchId
+      });
+
+      logger.info({ patchId, jobId: job.id }, "Successfully generated patch and enqueued verification");
+      return savedPatch;
     } catch (error) {
       logger.error({ err: error, jobId: job.id }, "Failed to process fix-generator job");
       throw error;

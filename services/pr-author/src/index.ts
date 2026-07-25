@@ -5,26 +5,40 @@ import { prisma } from "@vigil/database";
 import crypto from "crypto";
 import { createDraftPullRequest } from "./github.js";
 
-const worker = createWorker<VerifiedPatch>(
+interface PrJobData {
+  patchId: string;
+}
+
+const worker = createWorker<PrJobData>(
   "pr-author-queue",
-  async (job: Job<VerifiedPatch>) => {
-    logger.info({ jobId: job.id, patchId: job.data.id }, "Processing pr-author job");
+  async (job: Job<PrJobData>) => {
+    logger.info({ jobId: job.id, patchId: job.data.patchId }, "Processing pr-author job");
     try {
+      const { patchId } = job.data;
+      
+      const patchDb = await prisma.candidatePatch.findUnique({
+        where: { id: patchId }
+      });
+      
+      if (!patchDb) {
+         throw new Error("Could not find patch in database");
+      }
+
       // CRITICAL: NEVER auto-merge. Explicitly stated in AGENTS.md §6.6
-      if (job.data.testsPassed !== true) {
-        logger.warn({ patchId: job.data.id }, "Patch failed verification, skipping PR creation");
+      if (patchDb.verified !== true) {
+        logger.warn({ patchId }, "Patch failed verification, skipping PR creation");
         return null;
       }
 
       // Real implementation delegates to Octokit
       // Fetch the usage site and related change to get repo details and template context
       const usageSite = await prisma.usageSite.findUnique({
-        where: { id: job.data.usageSiteId },
+        where: { id: patchDb.usageSiteId },
         include: { change: true }
       });
 
       if (!usageSite) {
-        logger.error({ usageSiteId: job.data.usageSiteId }, "Usage site not found for patch");
+        logger.error({ usageSiteId: patchDb.usageSiteId }, "Usage site not found for patch");
         return null;
       }
 
@@ -43,7 +57,7 @@ const worker = createWorker<VerifiedPatch>(
         }
       };
 
-      const prRecord = await createDraftPullRequest(job.data, schemaUsageSite as any, owner, repo);
+      const prRecord = await createDraftPullRequest(patchDb as any, schemaUsageSite as any, owner, repo);
       
       logger.info({ githubPrUrl: prRecord.githubPrUrl }, "Successfully opened draft PR");
       return prRecord;
