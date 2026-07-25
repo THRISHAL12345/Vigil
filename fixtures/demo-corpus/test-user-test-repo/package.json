@@ -1,0 +1,7 @@
+{
+  "name": "test-repo",
+  "private": true,
+  "scripts": {
+    "test": "node test.js"
+  }
+}
