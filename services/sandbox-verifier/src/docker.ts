@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { execa } from "execa";
 import path from "path";
 import fs from "fs/promises";
+import os from "os";
 import { fileURLToPath } from "url";
 
 export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch> {
@@ -23,13 +24,18 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
   let testSuiteDetected = false;
   let sandboxLog = "";
 
+  let tmpDir: string | null = null;
   try {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "vigil-sandbox-"));
+    // Create a disposable copy of the repository
+    await fs.cp(targetDir, tmpDir, { recursive: true });
+
     // 2. Apply CandidatePatch diff
     // In MVP, we skip the actual `git apply` here if it's already applied in demo corpus, 
     // but we execute the test runner to get the output.
     
     // Check if package.json exists to detect test suite
-    const packageJsonPath = path.join(targetDir, "package.json");
+    const packageJsonPath = path.join(tmpDir, "package.json");
     try {
       await fs.access(packageJsonPath);
       testSuiteDetected = true;
@@ -46,7 +52,7 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
         "--network", "none", // no network egress
         "--memory", "4g", // resource limit
         "--cpus", "2", // resource limit
-        "-v", `${targetDir}:/app`,
+        "-v", `${tmpDir}:/app`,
         "-w", "/app",
         "node:20-alpine",
         "npm",
@@ -66,6 +72,14 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
     logger.error({ err: error }, "Sandbox execution failed critically");
     sandboxLog = error.message || "Unknown execution error";
     testsPassed = false;
+  } finally {
+    if (tmpDir) {
+      try {
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      } catch (e) {
+        logger.error({ err: e, tmpDir }, "Failed to clean up sandbox temporary directory");
+      }
+    }
   }
 
   // 4. Return the VerifiedPatch

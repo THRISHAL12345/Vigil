@@ -75,8 +75,8 @@ describe("diff-classifier deterministic rules", () => {
     };
     const classified = await classifyDelta(delta, fromSnapshot, toSnapshot);
     
-    // In test environment, the mock returns non_breaking
-    expect(classified.classification).toBe("non_breaking");
+    // In test environment, the mock returns breaking
+    expect(classified.classification).toBe("breaking");
     expect(classified.ruleTriggered).toBeNull();
   });
 });

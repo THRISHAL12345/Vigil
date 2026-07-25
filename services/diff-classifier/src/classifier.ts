@@ -20,9 +20,9 @@ async function classifyAmbiguousWithLlm(delta: SchemaDelta, from: SpecSnapshot, 
       fromSnapshotId: from.id,
       toSnapshotId: to.id,
       path: delta.path || "unknown",
-      classification: "non_breaking",
+      classification: "breaking",
       confidence: 0.5,
-      rationale: "LLM fallback (mocked) - assumed non_breaking for safety",
+      rationale: "LLM fallback (mocked) - assumed breaking for safety to ensure human review",
       ruleTriggered: null,
       detectedAt: new Date().toISOString(),
     };
@@ -43,7 +43,8 @@ Change details: ${JSON.stringify(delta, null, 2)}
 
 Provide a classification, confidence score, and rationale.
 If a required field is added, or an endpoint is removed, it is breaking.
-If an optional field is added, it is non_breaking.`
+If an optional field is added, it is non_breaking.
+If you are uncertain or the change is ambiguous, you MUST default to \`breaking\` to flag it for human review.`
   });
 
   return {

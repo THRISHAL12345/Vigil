@@ -4,8 +4,10 @@ import { createParser } from "@vigil/language-adapters";
 import { getSurfaceMap } from "@vigil/vendor-adapters";
 import { createWorker, createQueue, Job } from "@vigil/queue";
 import { prisma } from "@vigil/database";
+import { execa } from "execa";
 import * as fs from "fs/promises";
 import * as path from "path";
+import os from "os";
 import crypto from "crypto";
 
 async function walkDir(dir: string): Promise<string[]> {
@@ -35,6 +37,8 @@ const worker = createWorker<MapperJobData>(
   "usage-mapper-queue",
   async (job: Job<MapperJobData>) => {
     logger.info({ jobId: job.id }, "Processing usage-mapper job");
+    let targetDir = "";
+    let isTempDir = false;
     try {
       const { changeId, installationId } = job.data;
       
@@ -47,27 +51,41 @@ const worker = createWorker<MapperJobData>(
 
       // In this v1 MVP, we simulate having the repo checked out locally in a temporary directory
       // For demo purposes, we'll scan the `fixtures/demo-corpus` directory if it exists
-      const targetDir = path.resolve(process.cwd(), "../../fixtures/demo-corpus", installation.repoFullName.replace("/", "-"));
-      
-      let filesToScan: string[] = [];
-      try {
-        filesToScan = await walkDir(targetDir);
-      } catch (e) {
-        logger.warn({ targetDir }, "Target repo directory not found locally. Skipping scan.");
-        return [];
+      targetDir = path.resolve(process.cwd(), "../../fixtures/demo-corpus", installation.repoFullName.replace("/", "-"));
+
+      if (process.env.VIGIL_GITHUB_TOKEN && process.env.NODE_ENV !== "test") {
+        targetDir = await fs.mkdtemp(path.join(os.tmpdir(), "vigil-mapper-"));
+        isTempDir = true;
+        const repoUrl = `https://x-access-token:${process.env.VIGIL_GITHUB_TOKEN}@github.com/${installation.repoFullName}.git`;
+        try {
+          await execa("git", ["clone", repoUrl, targetDir]);
+        } catch (err: any) {
+          logger.error({ err, repoFullName: installation.repoFullName }, "Failed to clone repository");
+          await fs.rm(targetDir, { recursive: true, force: true });
+          throw err;
+        }
       }
 
-      const surfaceMap = getSurfaceMap(change.vendorId);
-      if (!surfaceMap) {
-        throw new Error(`No surface map found for vendor ${change.vendorId}`);
-      }
-      
-      // Find the entry that matches the change's path
-      const entry = surfaceMap.entries.find((e: any) => e.contractPath === change.path);
-      if (!entry || (!entry.typescript?.calleePatterns && !entry.python?.calleePatterns)) {
-         logger.info({ path: change.path }, "No mapped surface area for this change");
-         return [];
-      }
+      let filesToScan: string[] = [];
+        try {
+          filesToScan = await walkDir(targetDir);
+        } catch (e) {
+          logger.warn({ targetDir }, "Target repo directory not found locally. Skipping scan.");
+          if (isTempDir) await fs.rm(targetDir, { recursive: true, force: true });
+          return [];
+        }
+
+        const surfaceMap = getSurfaceMap(change.vendorId);
+        if (!surfaceMap) {
+          throw new Error(`No surface map found for vendor ${change.vendorId}`);
+        }
+        
+        // Find the entry that matches the change's path
+        const entry = surfaceMap.entries.find((e: any) => e.contractPath === change.path);
+        if (!entry || (!entry.typescript?.calleePatterns && !entry.python?.calleePatterns)) {
+           logger.info({ path: change.path }, "No mapped surface area for this change");
+           return [];
+        }
 
       const sitesUnsaved: UsageSite[] = [];
       
@@ -132,6 +150,14 @@ const worker = createWorker<MapperJobData>(
     } catch (error) {
       logger.error({ err: error, jobId: job.id }, "Failed to process usage-mapper job");
       throw error;
+    } finally {
+      if (isTempDir) {
+        try {
+          await fs.rm(targetDir, { recursive: true, force: true });
+        } catch (e) {
+          logger.error({ err: e, targetDir }, "Failed to clean up temporary directory");
+        }
+      }
     }
   }
 );

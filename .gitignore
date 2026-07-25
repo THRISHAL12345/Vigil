@@ -24,3 +24,5 @@ logs/
 
 # generated
 packages/database/src/generated/
+
+.vigil-storage/

@@ -16,7 +16,8 @@
     "@vigil/logger": "workspace:*",
     "@vigil/queue": "workspace:*",
     "@vigil/schemas": "workspace:*",
-    "@vigil/vendor-adapters": "workspace:*"
+    "@vigil/vendor-adapters": "workspace:*",
+    "execa": "^10.0.0"
   },
   "devDependencies": {
     "@vigil/config": "workspace:*",
