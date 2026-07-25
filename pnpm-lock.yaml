@@ -11,9 +11,18 @@ importers:
       '@types/node':
         specifier: ^26.1.1
         version: 26.1.1
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:packages/database
       '@vigil/logger':
         specifier: workspace:^
         version: link:packages/logger
+      '@vigil/queue':
+        specifier: workspace:^
+        version: link:packages/queue
+      '@vigil/storage':
+        specifier: workspace:^
+        version: link:packages/storage
       '@vigil/vendor-adapters':
         specifier: workspace:^
         version: link:packages/vendor-adapters
