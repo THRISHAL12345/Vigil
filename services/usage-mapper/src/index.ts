@@ -10,6 +10,9 @@ import * as path from "path";
 import os from "os";
 import crypto from "crypto";
 import { createAppAuth } from "@octokit/auth-app";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function walkDir(dir: string): Promise<string[]> {
   const files: string[] = [];
@@ -52,7 +55,7 @@ const worker = createWorker<MapperJobData>(
 
       // In this v1 MVP, we simulate having the repo checked out locally in a temporary directory
       // For demo purposes, we'll scan the `fixtures/demo-corpus` directory if it exists
-      targetDir = path.resolve(process.cwd(), "../../fixtures/demo-corpus", installation.repoFullName.replace("/", "-"));
+      targetDir = path.resolve(__dirname, "../../../fixtures/demo-corpus", installation.repoFullName.replace("/", "-"));
 
       let githubToken = process.env.VIGIL_GITHUB_TOKEN; // Fallback for tests or local simple usage
 
@@ -102,7 +105,7 @@ const worker = createWorker<MapperJobData>(
         }
         
         // Find the entry that matches the change's path
-        const entry = surfaceMap.entries.find((e: any) => e.contractPath === change.path);
+        const entry = surfaceMap.entries.find((e: any) => change.path.startsWith(e.contractPath));
         if (!entry || (!entry.typescript?.calleePatterns && !entry.python?.calleePatterns)) {
            logger.info({ path: change.path }, "No mapped surface area for this change");
            return [];
