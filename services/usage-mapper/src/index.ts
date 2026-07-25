@@ -9,6 +9,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import os from "os";
 import crypto from "crypto";
+import { createAppAuth } from "@octokit/auth-app";
 
 async function walkDir(dir: string): Promise<string[]> {
   const files: string[] = [];
@@ -53,10 +54,30 @@ const worker = createWorker<MapperJobData>(
       // For demo purposes, we'll scan the `fixtures/demo-corpus` directory if it exists
       targetDir = path.resolve(process.cwd(), "../../fixtures/demo-corpus", installation.repoFullName.replace("/", "-"));
 
-      if (process.env.VIGIL_GITHUB_TOKEN && process.env.NODE_ENV !== "test") {
+      let githubToken = process.env.VIGIL_GITHUB_TOKEN; // Fallback for tests or local simple usage
+
+      if (process.env.GITHUB_APP_ID && process.env.GITHUB_APP_PRIVATE_KEY && installation.installationId) {
+        try {
+          const auth = createAppAuth({
+            appId: process.env.GITHUB_APP_ID,
+            privateKey: process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+          });
+          const installationAuthentication = await auth({
+            type: "installation",
+            installationId: parseInt(installation.installationId, 10),
+          });
+          githubToken = installationAuthentication.token;
+          logger.info({ installationId: installation.installationId }, "Successfully generated scoped installation token");
+        } catch (authError) {
+          logger.error({ err: authError, installationId: installation.installationId }, "Failed to generate installation token");
+          throw new Error("Could not generate GitHub App installation token");
+        }
+      }
+
+      if (githubToken && process.env.NODE_ENV !== "test") {
         targetDir = await fs.mkdtemp(path.join(os.tmpdir(), "vigil-mapper-"));
         isTempDir = true;
-        const repoUrl = `https://x-access-token:${process.env.VIGIL_GITHUB_TOKEN}@github.com/${installation.repoFullName}.git`;
+        const repoUrl = `https://x-access-token:${githubToken}@github.com/${installation.repoFullName}.git`;
         try {
           await execa("git", ["clone", repoUrl, targetDir]);
         } catch (err: any) {
