@@ -1,6 +1,7 @@
 import yaml from "yaml";
 import crypto from "crypto";
 import { SpecSnapshot } from "@vigil/schemas";
+import { saveBlob } from "@vigil/storage";
 
 export async function normalizeSpec(
   vendorId: string,
@@ -22,6 +23,7 @@ export async function normalizeSpec(
   };
 
   const hash = crypto.createHash("sha256").update(JSON.stringify(normalizedTree)).digest("hex");
+  const blobRef = await saveBlob(`${hash}.json`, JSON.stringify(normalizedTree, null, 2));
 
   return {
     id: crypto.randomUUID(),
@@ -29,7 +31,7 @@ export async function normalizeSpec(
     sourceType: sourceType as any,
     sourceRef,
     normalizedTreeHash: hash,
-    normalizedTreeRef: "s3://mock-bucket/" + hash + ".json", // placeholder for external tree storage
+    normalizedTreeRef: blobRef,
     fetchedAt: new Date().toISOString()
   };
 }

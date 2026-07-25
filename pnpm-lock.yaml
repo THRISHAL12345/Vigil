@@ -272,6 +272,15 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  packages/storage:
+    devDependencies:
+      '@vigil/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   packages/vendor-adapters:
     dependencies:
       '@vigil/schemas':
@@ -293,6 +302,9 @@ importers:
       '@ai-sdk/groq':
         specifier: ^4.0.13
         version: 4.0.13(zod@3.25.76)
+      '@vigil/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@vigil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -302,6 +314,9 @@ importers:
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@vigil/storage':
+        specifier: workspace:^
+        version: link:../../packages/storage
       ai:
         specifier: ^7.0.37
         version: 7.0.37(zod@3.25.76)
@@ -453,6 +468,9 @@ importers:
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@vigil/storage':
+        specifier: workspace:^
+        version: link:../../packages/storage
       bullmq:
         specifier: ^5.0.0
         version: 5.81.1

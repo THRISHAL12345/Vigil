@@ -16,6 +16,7 @@
     "@vigil/logger": "workspace:*",
     "@vigil/queue": "workspace:^",
     "@vigil/schemas": "workspace:*",
+    "@vigil/storage": "workspace:^",
     "bullmq": "^5.0.0",
     "ioredis": "^5.3.0",
     "node-fetch": "^3.3.2",
