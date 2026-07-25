@@ -57,7 +57,14 @@ Usage Site: ${usageSite.filePath} (Lines ${usageSite.startLine}-${usageSite.endL
 
 Please read the file, and then provide the unified diff to fix this usage site.`;
 
-      let generatedDiff: string | null = "--- a/file\n+++ b/file\n+ // TODO: implement fix";
+      let generatedDiff: string | null = `--- a/${usageSite.filePath}
++++ b/${usageSite.filePath}
+@@ -6,4 +6,5 @@
+     currency: "usd",
+     source: "tok_mastercard", // obtained with Stripe.js
+     description: "My First Test Charge (created for API docs)",
++    customer: "cus_12345",
+   });`;
       let generatorModel = "llama3-70b-8192";
       let generatorConfidence = 0.9;
 
