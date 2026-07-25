@@ -34,25 +34,55 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
     const patchPath = path.join(tmpDir, "patch.diff");
     await fs.writeFile(patchPath, patch.diff);
     
+    // Check if package.json exists to detect test suite
+    const packageJsonPath = path.join(tmpDir, "package.json");
+    try {
+      await fs.access(packageJsonPath);
+      testSuiteDetected = true;
+    } catch {
+      testSuiteDetected = false;
+    }
+
     try {
       // Initialize a temporary git repo if one doesn't exist so git apply works reliably
-      // await execa("git", ["init"], { cwd: tmpDir });
-      // await execa("git", ["add", "."], { cwd: tmpDir });
-      // await execa("git", ["apply", "patch.diff"], { cwd: tmpDir });
-      logger.info({ patchId: patch.id }, "Successfully applied CandidatePatch diff before testing (mocked for E2E trace)");
+      await execa("git", ["init"], { cwd: tmpDir });
+      await execa("git", ["add", "."], { cwd: tmpDir });
+      await execa("git", ["apply", "patch.diff"], { cwd: tmpDir });
+      logger.info({ patchId: patch.id }, "Successfully applied CandidatePatch diff before testing");
     } catch (applyError: any) {
       logger.error({ err: applyError, stderr: applyError.stderr }, "Failed to apply diff in sandbox");
       throw new Error("Patch failed to apply cleanly");
     }
-    
-    // For E2E trace, just mock that test suite exists and tests pass!
-    testSuiteDetected = true;
-    sandboxLog = "Mocked sandbox execution successful.";
-    testsPassed = true;
+
+    if (testSuiteDetected) {
+      // 3. Run the test suite in a fully isolated container
+      // As per AGENTS.md §8.2: isolated, no network egress, ephemeral
+      const { stdout, stderr, exitCode } = await execa("docker", [
+        "run",
+        "--rm", // ephemeral
+        "--network", "none", // no network egress
+        "--memory", "4g", // resource limit
+        "--cpus", "2", // resource limit
+        "-v", `${tmpDir}:/app`,
+        "-w", "/app",
+        "node:20-alpine",
+        "npm",
+        "test"
+      ], {
+        reject: false, // Don't throw on non-zero exit
+        timeout: 600000, // 10 minute hard timeout
+      });
+      
+      sandboxLog = `${stdout}\n${stderr}`;
+      testsPassed = exitCode === 0;
+    } else {
+      sandboxLog = "No test suite detected in target repository.";
+      testsPassed = false;
+    }
   } catch (error: any) {
     logger.error({ err: error }, "Sandbox execution failed critically");
     sandboxLog = error.message || "Unknown execution error";
-    testsPassed = true; // Still pass so it traces to pr-author!
+    testsPassed = false;
 
   } finally {
     if (tmpDir) {
