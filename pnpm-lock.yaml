@@ -20,6 +20,9 @@ importers:
       '@vigil/queue':
         specifier: workspace:^
         version: link:packages/queue
+      '@vigil/schemas':
+        specifier: workspace:^
+        version: link:packages/schemas
       '@vigil/storage':
         specifier: workspace:^
         version: link:packages/storage
@@ -443,6 +446,9 @@ importers:
       '@vigil/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@vigil/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       bullmq:
         specifier: ^5.0.0
         version: 5.81.1

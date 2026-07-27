@@ -23,6 +23,7 @@ export async function saveBlob(key: string, content: string | Buffer): Promise<s
     throw new Error("Invalid storage key");
   }
 
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, content);
   return `local://${key}`;
 }

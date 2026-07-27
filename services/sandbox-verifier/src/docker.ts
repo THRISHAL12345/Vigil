@@ -1,5 +1,6 @@
 import { logger } from "@vigil/logger";
 import { CandidatePatch, VerifiedPatch } from "@vigil/schemas";
+import { saveBlob } from "@vigil/storage";
 import crypto from "crypto";
 
 import { execa } from "execa";
@@ -94,6 +95,14 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
     }
   }
 
+  let logRefUri = `s3://vigil-sandbox-logs/${patch.usageSiteId}-${patch.id}.log`;
+  try {
+    const filename = `sandbox-verifier/logs/${patch.usageSiteId}-${patch.id}.log`;
+    logRefUri = await saveBlob(filename, sandboxLog);
+  } catch (err: any) {
+    logger.error({ err }, "Failed to persist sandbox log");
+  }
+
   // 4. Return the VerifiedPatch
   const verified: VerifiedPatch = {
     ...patch,
@@ -101,7 +110,7 @@ export async function runInSandbox(patch: CandidatePatch): Promise<VerifiedPatch
     sandboxRunId: crypto.randomUUID(),
     testSuiteDetected,
     testsPassed,
-    logRef: `s3://vigil-sandbox-logs/${patch.usageSiteId}-${patch.id}.log`
+    logRef: logRefUri
   };
   
   logger.info({ verifiedId: verified.id, testsPassed }, "Sandbox verification complete");
