@@ -65,66 +65,100 @@ Please read the file, and then provide the unified diff to fix this usage site.`
      description: "My First Test Charge (created for API docs)",
 +    customer: "cus_12345",
    });`;
-      let generatorModel = "llama3-70b-8192";
+      let generatorModel = "qwen/qwen3.6-27b";
       let generatorConfidence = 0.9;
 
       if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== "dummy" && process.env.NODE_ENV !== "test") {
         let readsCount = 0;
         const MAX_READS = 5;
 
-        const { toolCalls } = await generateText({
-          model: groq("llama3-70b-8192"),
-          system: systemPrompt,
-          prompt: userPrompt,
-          tools: {
-            read_file: tool({
-              description: "Reads the content of a file from the repository.",
-              inputSchema: z.object({
-                filePath: z.string().describe("The relative path of the file to read (e.g. src/index.ts)"),
-              }),
-              execute: async ({ filePath }) => {
-                readsCount++;
-                logger.info({ tool: "read_file", filePath, jobId: job.id, attempt: readsCount }, "LLM requested file context");
-                
-                if (readsCount > MAX_READS) {
-                  logger.warn({ jobId: job.id, filePath }, "LLM exceeded maximum allowed file reads");
-                  return "Error: Tool read limit exceeded. You are not allowed to read any more files for this job.";
-                }
+        let messages: any[] = [
+          { role: "user", content: userPrompt }
+        ];
 
-                const absolutePath = path.resolve(targetDir as string, filePath);
-                // Strict path traversal prevention per AGENTS.md §6.4
-                if (!absolutePath.startsWith(path.resolve(targetDir as string))) {
-                  logger.error({ jobId: job.id, attemptedPath: absolutePath }, "UNAUTHORIZED: LLM attempted path traversal outside target directory");
-                  return "Error: Path traversal is strictly forbidden. This incident has been logged.";
-                }
+        let finalPatchCall = null;
 
-                try {
-                  const content = await fs.readFile(absolutePath, "utf-8");
-                  return content;
-                } catch (error: any) {
-                  logger.error({ err: error, jobId: job.id, filePath }, "LLM read_file tool encountered an error");
-                  return `Error reading file: ${error.message}`;
+        for (let i = 0; i < 5; i++) {
+          const { text, toolCalls, toolResults } = await generateText({
+            model: groq("qwen/qwen3.6-27b"),
+            system: systemPrompt,
+            messages,
+            tools: {
+              read_file: tool({
+                description: "Reads the content of a file from the repository.",
+                inputSchema: z.object({
+                  filePath: z.string().describe("The relative path of the file to read (e.g. src/index.ts)"),
+                }),
+                execute: async ({ filePath }) => {
+                  readsCount++;
+                  logger.info({ tool: "read_file", filePath, jobId: job.id, attempt: readsCount }, "LLM requested file context");
+                  
+                  if (readsCount > MAX_READS) {
+                    logger.warn({ jobId: job.id, filePath }, "LLM exceeded maximum allowed file reads");
+                    return "Error: Tool read limit exceeded. You are not allowed to read any more files for this job.";
+                  }
+
+                  const absolutePath = path.resolve(targetDir as string, filePath);
+                  if (!absolutePath.startsWith(path.resolve(targetDir as string))) {
+                    logger.error({ jobId: job.id, attemptedPath: absolutePath }, "UNAUTHORIZED: LLM attempted path traversal outside target directory");
+                    return "Error: Path traversal is strictly forbidden. This incident has been logged.";
+                  }
+
+                  try {
+                    const content = await fs.readFile(absolutePath, "utf-8");
+                    return content;
+                  } catch (error: any) {
+                    logger.error({ err: error, jobId: job.id, filePath }, "LLM read_file tool encountered an error");
+                    return `Error reading file: ${error.message}`;
+                  }
                 }
-              }
-            }),
-            write_patch: tool({
-              description: "Proposes a CandidatePatch. Call this when you are confident in your fix.",
-              inputSchema: z.object({
-                diff: z.string().describe("The unified diff string to fix the usage site"),
-                confidence: z.number().min(0).max(1).describe("Your confidence in this patch being correct (0.0 to 1.0)")
               }),
-              execute: async (args) => {
-                logger.info({ jobId: job.id, confidence: args.confidence }, "LLM called write_patch tool");
-                return args;
-              }
-            })
+              write_patch: tool({
+                description: "Proposes a CandidatePatch. Call this when you are confident in your fix.",
+                inputSchema: z.object({
+                  diff: z.string().describe("The unified diff string to fix the usage site"),
+                  confidence: z.number().min(0).max(1).describe("Your confidence in this patch being correct (0.0 to 1.0)")
+                }),
+                execute: async (args) => {
+                  logger.info({ jobId: job.id, confidence: args.confidence }, "LLM called write_patch tool");
+                  return args;
+                }
+              })
+            }
+          });
+
+          messages.push({
+            role: "assistant",
+            content: text || "",
+            toolCalls
+          });
+
+          const patchCall = toolCalls.find((c: any) => c.toolName === "write_patch");
+          if (patchCall) {
+            finalPatchCall = patchCall;
+            break;
           }
-        });
+
+          if (toolCalls.length === 0) {
+            break;
+          }
+
+          if (toolResults && toolResults.length > 0) {
+            messages.push({
+              role: "tool",
+              content: toolResults.map((r: any) => ({
+                type: "tool-result",
+                toolCallId: r.toolCallId,
+                toolName: r.toolName,
+                result: r.result
+              }))
+            });
+          }
+        }
         
-        const patchCall = toolCalls.find((c: any) => c.toolName === "write_patch");
-        if (patchCall) {
-          generatedDiff = (patchCall as any).args.diff;
-          generatorConfidence = (patchCall as any).args.confidence;
+        if (finalPatchCall) {
+          generatedDiff = (finalPatchCall as any).args.diff;
+          generatorConfidence = (finalPatchCall as any).args.confidence;
         } else {
           logger.warn({ jobId: job.id }, "LLM failed to call write_patch tool");
           generatedDiff = null;

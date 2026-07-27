@@ -2,6 +2,7 @@ import { SurfaceMap, VendorConfig } from "@vigil/schemas";
 import { stripeSurfaceMap } from "./stripe/index.js";
 import { stripeConfig } from "./stripe/vendor.config.js";
 import { openaiSurfaceMap } from "./openai/index.js";
+import { openaiConfig } from "./openai/vendor.config.js";
 import { twilioSurfaceMap } from "./twilio/index.js";
 import { githubSurfaceMap } from "./github/index.js";
 
@@ -17,7 +18,8 @@ export function getSurfaceMap(vendorId: string): SurfaceMap | undefined {
 }
 
 export const vendorConfigs: Record<string, VendorConfig> = {
-  stripe: stripeConfig
+  stripe: stripeConfig,
+  openai: openaiConfig
 };
 
 export function getVendorConfig(vendorId: string): VendorConfig | undefined {
